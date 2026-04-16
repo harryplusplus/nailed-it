@@ -8,7 +8,9 @@
     "email": "harryplusplus@gmail.com"
   },
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "postinstall": "node scripts/postinstall.ts"
+  },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "execa": "^9.6.1",
