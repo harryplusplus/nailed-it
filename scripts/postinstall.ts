@@ -1,12 +1,16 @@
-import { $ } from 'execa'
+import { $ as $base } from 'execa'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import os from 'node:os'
 
-const filePath = fileURLToPath(import.meta.url)
-const rootDir = path.resolve(path.dirname(filePath), '..')
-const piDir = path.join(rootDir, '.pi')
-const piHome = path.join(os.homedir(), '.pi')
+const $ = $base({ shell: true })
+const repoRoot = path.resolve(fileURLToPath(import.meta.url), '../..')
+console.log(`Nailed It! directory: ${repoRoot}`)
 
 console.log('Linking .pi directory...')
-await $`ln -sfn ${piDir} ${piHome}`
+await $`ln -sfn ${repoRoot}/.pi ~/.pi`
+
+console.log('Checking pi command...')
+await $`pi --version`
+
+console.log('Checking OLLAMA_API_KEY environment variable...')
+await $`[ -n "$OLLAMA_API_KEY" ]`
