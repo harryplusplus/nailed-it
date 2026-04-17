@@ -1,0 +1,3 @@
+[submodule "external/pi-mono"]
+	path = external/pi-mono
+	url = https://github.com/harryplusplus/pi-mono.git
