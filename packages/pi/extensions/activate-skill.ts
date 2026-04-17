@@ -5,6 +5,7 @@ import {
 import { Type } from '@sinclair/typebox'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import { Text } from '@mariozechner/pi-tui'
 
 export default async function (pi: ExtensionAPI) {
   pi.on('session_start', async () => {
@@ -12,7 +13,7 @@ export default async function (pi: ExtensionAPI) {
       .getCommands()
       .filter(c => c.source === 'skill')
       .map(c => ({
-        name: c.name,
+        name: c.name.replace(/^skill:/, ''),
         description: c.description,
         path: c.sourceInfo.path,
       }))
@@ -80,6 +81,13 @@ Relative paths in this skill are relative to the skill directory.
           content: [{ type: 'text', text }],
           details: { name: info.name, dir },
         }
+      },
+      renderResult({ details }, { expanded }) {
+        let text = `Skill ${details.name} activated.`
+        if (expanded) {
+          text += `\nDirectory: ${details.dir}`
+        }
+        return new Text(text)
       },
     })
   })
