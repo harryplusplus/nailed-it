@@ -13,18 +13,20 @@ const globalPiAgentDir = path.join(os.homedir(), '.pi', 'agent')
 const repoPiPath = path.join(repoRoot, 'node_modules', '.bin', 'pi')
 const dotLocalPiPath = path.join(os.homedir(), '.local', 'bin', 'pi')
 
+const repoOpencodeConfigDir = path.join(
+  repoRoot,
+  'assets',
+  'config',
+  'opencode',
+)
 const repoOpencodePluginsDir = path.join(
   repoRoot,
   'packages',
   'opencode',
   'plugins',
 )
-const globalOpencodePluginsDir = path.join(
-  os.homedir(),
-  '.config',
-  'opencode',
-  'plugins',
-)
+const globalOpencodeConfigDir = path.join(os.homedir(), '.config', 'opencode')
+const globalOpencodePluginsDir = path.join(globalOpencodeConfigDir, 'plugins')
 
 main()
 
@@ -40,8 +42,8 @@ async function setupPi() {
   console.log('Setting up Pi...')
 
   console.log('Copying Pi agent configuration files...')
-  await copyConfig('models.json')
-  await copyConfig('settings.json')
+  await copyPiConfig('models.json')
+  await copyPiConfig('settings.json')
 
   console.log('Creating ~/.local/bin/pi script...')
   await createDotLocalPi()
@@ -56,14 +58,25 @@ async function setupPi() {
   await $`[ -n "$OLLAMA_API_KEY" ]`
 }
 
+async function copyPiConfig(fileName: string) {
+  await copyConfig(repoPiAgentDir, globalPiAgentDir, fileName)
+}
+
 async function setupOpencode() {
   console.log('Setting up Opencode...')
+
+  console.log('Copying Opencode configuration files...')
+  await copyOpencodeConfig('opencode.jsonc')
 
   console.log('Linking Opencode plugins...')
   await linkOpencodePlugin('temperature.ts')
 
   console.log('Checking opencode command...')
   await $`opencode --version`
+}
+
+async function copyOpencodeConfig(fileName: string) {
+  await copyConfig(repoOpencodeConfigDir, globalOpencodeConfigDir, fileName)
 }
 
 async function checkRepoRoot() {
@@ -76,10 +89,10 @@ async function checkRepoRoot() {
   }
 }
 
-async function copyConfig(fileName: string) {
-  const src = path.join(repoPiAgentDir, fileName)
-  const dest = path.join(globalPiAgentDir, fileName)
-  await fs.mkdir(globalPiAgentDir, { recursive: true })
+async function copyConfig(srcDir: string, destDir: string, fileName: string) {
+  const src = path.join(srcDir, fileName)
+  const dest = path.join(destDir, fileName)
+  await fs.mkdir(destDir, { recursive: true })
   const hasDest = await fs
     .stat(dest)
     .then(s => s.isFile())

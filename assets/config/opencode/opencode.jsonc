@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": { "*": "allow" },
+  "provider": {
+    "ollama-cloud": {
+      "models": {
+        "glm-5.1": { "variants": { "high": { "reasoningEffort": "high" } } },
+      },
+    },
+  },
+}
