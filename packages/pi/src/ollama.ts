@@ -1,8 +1,8 @@
 export function parseOllamaApiKey() {
-  const { OLLAMA_API_KEY } = process.env
-  if (!OLLAMA_API_KEY) {
+  const apiKey = process.env.OLLAMA_API_KEY
+  if (!apiKey) {
     throw new Error('OLLAMA_API_KEY not found')
   }
 
-  return OLLAMA_API_KEY
+  return apiKey
 }

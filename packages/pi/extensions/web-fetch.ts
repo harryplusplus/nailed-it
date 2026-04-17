@@ -30,6 +30,7 @@ export default function (pi: ExtensionAPI) {
         body: JSON.stringify(params),
         signal,
       })
+
       if (!response.ok) {
         const text = await response.text()
         throw new Error(
@@ -39,7 +40,8 @@ export default function (pi: ExtensionAPI) {
 
       const data: Static<typeof WebFetchResponse> = await response.json()
 
-      let text = `<web_fetch_result>\n`
+      let text = ''
+      text += `<web_fetch_result>\n`
       text += `  <title>${data.title}</title>\n`
       text += `  <content>\n${data.content}\n</content>\n`
       if (data.links.length > 0) {
@@ -54,13 +56,23 @@ export default function (pi: ExtensionAPI) {
       return { content: [{ type: 'text', text }], details: data }
     },
     renderResult({ details }, { expanded }) {
-      let text = `${details.title}`
+      let text = ''
+      if (details.title) {
+        text += details.title
+      }
+
       if (expanded) {
+        if (text) {
+          text += '\n'
+        }
+
         const codepoints = [...details.content]
         if (codepoints.length > 200) {
-          text += `\n${codepoints.slice(0, 200).join('')}...\n`
+          text += `${codepoints.slice(0, 200).join('')}...`
+        } else if (details.content) {
+          text += details.content
         } else {
-          text += `\n${details.content}`
+          text += 'No content'
         }
       }
 

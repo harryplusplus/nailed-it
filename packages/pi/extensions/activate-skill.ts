@@ -1,17 +1,13 @@
-import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
+import {
+  type ExtensionAPI,
+  stripFrontmatter,
+} from '@mariozechner/pi-coding-agent'
 import { Type } from '@sinclair/typebox'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 import fs from 'node:fs/promises'
 
 export default async function (pi: ExtensionAPI) {
-  let toolRegistered = false
-
-  pi.on('input', async () => {
-    if (toolRegistered) {
-      return
-    }
-
+  pi.on('session_start', async () => {
     const skills = pi
       .getCommands()
       .filter(c => c.source === 'skill')
@@ -22,8 +18,9 @@ export default async function (pi: ExtensionAPI) {
       }))
       .toSorted((a, b) => a.name.localeCompare(b.name))
 
-    let description =
-      'Load a specialized skill that provides domain-specific instructions and workflows.'
+    const promptSnippet =
+      'Load a specialized skill that provides domain-specific instructions and workflows'
+    let description = `${promptSnippet}.`
     if (!skills.length) {
       description += ' No skills are currently available.'
     } else {
@@ -47,9 +44,10 @@ ${skills.map(s => `- **${s.name}**${s.description ? `: ${s.description}` : ''}`)
     )
 
     pi.registerTool({
-      name: 'skill',
-      label: 'Skill',
+      name: 'activate_skill',
+      label: 'Activate Skill',
       description,
+      promptSnippet,
       parameters: Type.Object({
         name: Type.String({
           description: 'The name of the skill from available_skills',
@@ -65,20 +63,17 @@ ${skills.map(s => `- **${s.name}**${s.description ? `: ${s.description}` : ''}`)
         }
 
         if (!info.loaded) {
-          info.content = await fs.readFile(info.path, 'utf8')
+          info.content = stripFrontmatter(await fs.readFile(info.path, 'utf8'))
           info.loaded = true
         }
 
         const dir = path.dirname(info.path)
-        const base = pathToFileURL(dir).href
 
         let text = `<skill_content name="${info.name}">
-# Skill: ${info.name}
-
 ${info.content.trim()}
 
-Base directory for this skill: ${base}
-Relative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.
+Skill directory: ${dir}
+Relative paths in this skill are relative to the skill directory.
 </skill_content>`
 
         return {
@@ -87,7 +82,5 @@ Relative paths in this skill (e.g., scripts/, reference/) are relative to this b
         }
       },
     })
-
-    toolRegistered = true
   })
 }

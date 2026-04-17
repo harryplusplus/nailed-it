@@ -1,0 +1,38 @@
+diff --git a/dist/core/skills.js b/dist/core/skills.js
+index ca7b85131c9de19572d9e6f3ab5e78ae6e3721d9..dbe6ebe3060416bba53cfd2dd6dd4d36e67e6a3e 100644
+--- a/dist/core/skills.js
++++ b/dist/core/skills.js
+@@ -264,16 +264,15 @@ export function formatSkillsForPrompt(skills) {
+     }
+     const lines = [
+         "\n\nThe following skills provide specialized instructions for specific tasks.",
+-        "Use the read tool to load a skill's file when the task matches its description.",
+-        "When a skill file references a relative path, resolve it against the skill directory (parent of SKILL.md / dirname of the path) and use that absolute path in tool commands.",
++        "When a task matches a skill's description, call the activate_skill tool with the skill's name to load its full instructions.",
+         "",
+         "<available_skills>",
+     ];
+     for (const skill of visibleSkills) {
+         lines.push("  <skill>");
+-        lines.push(`    <name>${escapeXml(skill.name)}</name>`);
+-        lines.push(`    <description>${escapeXml(skill.description)}</description>`);
+-        lines.push(`    <location>${escapeXml(skill.filePath)}</location>`);
++        lines.push(`    <name>${skill.name}</name>`);
++        lines.push(`    <description>${skill.description}</description>`);
++        lines.push(`    <location>${skill.filePath}</location>`);
+         lines.push("  </skill>");
+     }
+     lines.push("</available_skills>");
+diff --git a/dist/core/tools/bash.js b/dist/core/tools/bash.js
+index 36862300c867851de207eb162f1657ac8420c020..17ed6ec05c4def9f51f5720d14a4371cd4ca5a66 100644
+--- a/dist/core/tools/bash.js
++++ b/dist/core/tools/bash.js
+@@ -193,7 +193,7 @@ export function createBashToolDefinition(cwd, options) {
+         name: "bash",
+         label: "bash",
+         description: `Execute a bash command in the current working directory. Returns stdout and stderr. Output is truncated to last ${DEFAULT_MAX_LINES} lines or ${DEFAULT_MAX_BYTES / 1024}KB (whichever is hit first). If truncated, full output is saved to a temp file. Optionally provide a timeout in seconds.`,
+-        promptSnippet: "Execute bash commands (ls, grep, find, etc.)",
++        promptSnippet: "Execute bash commands (ls, find, etc.)",
+         parameters: bashSchema,
+         async execute(_toolCallId, { command, timeout }, signal, onUpdate, _ctx) {
+             const resolvedCommand = commandPrefix ? `${commandPrefix}\n${command}` : command;

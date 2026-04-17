@@ -41,6 +41,7 @@ export default function (pi: ExtensionAPI) {
         body: JSON.stringify(params),
         signal,
       })
+
       if (!response.ok) {
         const text = await response.text()
         throw new Error(
@@ -50,7 +51,8 @@ export default function (pi: ExtensionAPI) {
 
       const data: Static<typeof WebSearchResponse> = await response.json()
 
-      let text = '<web_search_results>\n'
+      let text = ''
+      text += '<web_search_results>\n'
       for (const [i, r] of data.results.entries()) {
         text += `  <result index="${i + 1}">\n`
         text += `    <title>${r.title}</title>\n`
