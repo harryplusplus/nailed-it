@@ -10,6 +10,8 @@ const repoRoot = path.resolve(fileURLToPath(import.meta.url), '../..')
 const repoPiAgentDir = path.join(repoRoot, 'assets', 'pi', 'agent')
 const repoPackagePiDir = path.join(repoRoot, 'packages', 'pi')
 const globalPiAgentDir = path.join(os.homedir(), '.pi', 'agent')
+const repoPiPath = path.join(repoRoot, 'node_modules', '.bin', 'pi')
+const dotLocalPiPath = path.join(os.homedir(), '.local', 'bin', 'pi')
 
 main()
 
@@ -23,7 +25,10 @@ async function main() {
   await copyConfig('models.json')
   await copyConfig('settings.json')
 
-  console.log('Checking Pi command...')
+  console.log('Creating ~/.local/bin/pi script...')
+  await createDotLocalPi()
+
+  console.log('Checking pi command...')
   await $`pi --version`
 
   console.log('Installing Pi package...')
@@ -58,4 +63,12 @@ async function copyConfig(fileName: string) {
     await fs.rename(dest, dest + '.bak')
   }
   await fs.copyFile(src, dest)
+}
+
+async function createDotLocalPi() {
+  const wrapperScript = `#!/bin/sh
+exec ${repoPiPath} "$@"
+`
+  await fs.writeFile(dotLocalPiPath, wrapperScript)
+  await fs.chmod(dotLocalPiPath, 0o755)
 }
