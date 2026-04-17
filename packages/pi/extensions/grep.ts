@@ -1,13 +1,6 @@
 import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
 
 export default async function (pi: ExtensionAPI) {
-  const result = await pi.exec('rg', ['--version'])
-  if (result.code !== 0) {
-    throw new Error(
-      'rg (ripgrep) is required but not found. Install: https://github.com/BurntSushi/ripgrep',
-    )
-  }
-
   pi.on('session_start', () => {
     const activeTools = new Set(pi.getActiveTools())
     activeTools.add('grep')
