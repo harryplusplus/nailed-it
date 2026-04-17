@@ -7,6 +7,7 @@ import os from 'node:os'
 const $ = $base({ shell: true })
 
 const repoRoot = path.resolve(fileURLToPath(import.meta.url), '../..')
+
 const repoPiAgentDir = path.join(repoRoot, 'assets', 'pi', 'agent')
 const repoPackagePiDir = path.join(repoRoot, 'packages', 'pi')
 const globalPiAgentDir = path.join(os.homedir(), '.pi', 'agent')
@@ -28,6 +29,9 @@ const repoOpencodePluginsDir = path.join(
 const globalOpencodeConfigDir = path.join(os.homedir(), '.config', 'opencode')
 const globalOpencodePluginsDir = path.join(globalOpencodeConfigDir, 'plugins')
 
+const repoSkillsDir = path.join(repoRoot, 'skills')
+const globalSkillsDir = path.join(os.homedir(), '.agents', 'skills')
+
 main()
 
 async function main() {
@@ -35,7 +39,35 @@ async function main() {
   await checkRepoRoot()
   await setupPi()
   await setupOpencode()
+  await setupSkills()
   console.log('Setup complete!')
+}
+
+async function setupSkills() {
+  console.log('Setting up skills...')
+  await fs.mkdir(globalSkillsDir, { recursive: true })
+
+  console.log('Removing broken skill symlinks...')
+  await removeBrokenSymlinks(globalSkillsDir)
+
+  console.log('Linking skills from repository...')
+  await linkSkills()
+}
+
+async function linkSkills() {
+  const skillDirs = await fs.readdir(repoSkillsDir)
+  for (const dir of skillDirs) {
+    const src = path.join(repoSkillsDir, dir)
+    const dest = path.join(globalSkillsDir, dir)
+    const stat = await fs.lstat(dest).catch(() => null)
+    if (stat?.isSymbolicLink()) {
+      await fs.unlink(dest)
+    } else if (stat) {
+      await fs.rm(dest + '.bak').catch(() => {})
+      await fs.rename(dest, dest + '.bak')
+    }
+    await fs.symlink(src, dest)
+  }
 }
 
 async function setupPi() {
@@ -125,4 +157,21 @@ async function linkOpencodePlugin(fileName: string) {
   }
   await fs.access(src, fs.constants.R_OK)
   await fs.symlink(src, dest)
+}
+
+async function removeBrokenSymlinks(dir: string) {
+  const entries = await fs.readdir(dir, { withFileTypes: true })
+  await Promise.all(
+    entries
+      .filter(e => e.isSymbolicLink())
+      .map(async e => {
+        const fullPath = path.join(dir, e.name)
+        const target = path.resolve(dir, await fs.readlink(fullPath))
+        try {
+          await fs.lstat(target)
+        } catch {
+          await fs.unlink(fullPath)
+        }
+      }),
+  )
 }
