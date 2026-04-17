@@ -13,13 +13,31 @@ const globalPiAgentDir = path.join(os.homedir(), '.pi', 'agent')
 const repoPiPath = path.join(repoRoot, 'node_modules', '.bin', 'pi')
 const dotLocalPiPath = path.join(os.homedir(), '.local', 'bin', 'pi')
 
+const repoOpencodePluginsDir = path.join(
+  repoRoot,
+  'packages',
+  'opencode',
+  'plugins',
+)
+const globalOpencodePluginsDir = path.join(
+  os.homedir(),
+  '.config',
+  'opencode',
+  'plugins',
+)
+
 main()
 
 async function main() {
-  console.log('Setting up Pi...')
-
   console.log('Checking repository root...')
   await checkRepoRoot()
+  await setupPi()
+  await setupOpencode()
+  console.log('Setup complete!')
+}
+
+async function setupPi() {
+  console.log('Setting up Pi...')
 
   console.log('Copying Pi agent configuration files...')
   await copyConfig('models.json')
@@ -36,8 +54,16 @@ async function main() {
 
   console.log('Checking OLLAMA_API_KEY environment variable...')
   await $`[ -n "$OLLAMA_API_KEY" ]`
+}
 
-  console.log('Setup complete!')
+async function setupOpencode() {
+  console.log('Setting up Opencode...')
+
+  console.log('Linking Opencode plugins...')
+  await linkOpencodePlugin('temperature.ts')
+
+  console.log('Checking opencode command...')
+  await $`opencode --version`
 }
 
 async function checkRepoRoot() {
@@ -71,4 +97,19 @@ exec ${repoPiPath} "$@"
 `
   await fs.writeFile(dotLocalPiPath, wrapperScript)
   await fs.chmod(dotLocalPiPath, 0o755)
+}
+
+async function linkOpencodePlugin(fileName: string) {
+  const src = path.join(repoOpencodePluginsDir, fileName)
+  const dest = path.join(globalOpencodePluginsDir, fileName)
+  await fs.mkdir(globalOpencodePluginsDir, { recursive: true })
+  const stat = await fs.lstat(dest).catch(() => null)
+  if (stat?.isSymbolicLink()) {
+    await fs.unlink(dest)
+  } else if (stat) {
+    await fs.rm(dest + '.bak').catch(() => {})
+    await fs.rename(dest, dest + '.bak')
+  }
+  await fs.access(src, fs.constants.R_OK)
+  await fs.symlink(src, dest)
 }

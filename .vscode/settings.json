@@ -1,4 +1,10 @@
 {
-  "cSpell.words": ["harryplusplus", "mariozechner", "ollama", "typebox"],
+  "cSpell.words": [
+    "harryplusplus",
+    "mariozechner",
+    "ollama",
+    "opencode",
+    "typebox"
+  ],
   "debug.allowBreakpointsEverywhere": true
 }

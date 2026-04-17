@@ -9,12 +9,13 @@
   },
   "type": "module",
   "scripts": {
-    "setup-pi": "node scripts/setup-pi.ts"
+    "setup": "node scripts/setup.ts"
   },
   "devDependencies": {
     "@mariozechner/pi-ai": "0.67.6",
     "@mariozechner/pi-coding-agent": "0.67.6",
     "@mariozechner/pi-tui": "0.67.6",
+    "@opencode-ai/plugin": "^1.4.7",
     "@sinclair/typebox": "^0.34.49",
     "@types/node": "^25.6.0",
     "execa": "^9.6.1",
