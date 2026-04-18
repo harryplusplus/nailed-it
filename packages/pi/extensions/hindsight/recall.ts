@@ -1,5 +1,6 @@
+import { recallWithTimeout } from './client.js'
 import type { HindsightClients } from './client.js'
-import { recallWithTimeout, recallResponseToPromptString } from './client.js'
+import { recallResponseToPromptString } from '@vectorize-io/hindsight-client'
 import { RECALL_PROMPT_HEADER, RECALL_PROMPT_FOOTER } from './config.js'
 
 export async function recallAndInject(

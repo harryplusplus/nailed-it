@@ -4,7 +4,6 @@ import {
   createClient,
   createConfig,
   sdk,
-  recallResponseToPromptString,
 } from '@vectorize-io/hindsight-client'
 import type {
   Client,
@@ -44,8 +43,6 @@ export function createClients(
     baseUrl,
   }
 }
-
-export { recallResponseToPromptString }
 
 export function logError(
   event: string,
