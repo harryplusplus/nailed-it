@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --experimental-strip-types index.ts"
+    "start": "node index.ts"
   },
   "dependencies": {
     "@mariozechner/pi-coding-agent": "^0.67.68",
