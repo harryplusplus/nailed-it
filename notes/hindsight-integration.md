@@ -14,11 +14,11 @@ Pi 에이전트에 장기 기억을 부여한다. 세션 간, 턴 간 맥락을 
 | -------------- | -------------------------------------------------------- |
 | 에이전트 ID    | `NI_AGENT_ID` 환경변수 (예: `coding`, `research`) |
 | Hindsight Bank | `pi-{agentId}` (예: `pi-coding`, `pi-research`)          |
-| Document ID    | `session:{sessionId}` (세션별 대화 구분, upsert 단위)    |
+| Document ID    | `pi:session:{sessionId}` (세션별 대화 구분, upsert 단위)    |
 
 - **1 에이전트 = 1 Hindsight Bank**. 같은 에이전트의 모든 세션이 기억을 공유.
 - 세션이 달라도 같은 bank → 과거 세션에서 학습한 팩트가 자동으로 recall됨 = **진짜 장기 기억**.
-- `document_id = session:{sessionId}` → 같은 세션은 upsert(최신 상태), 다른 세션은 별도 document(과거 대화 보존).
+- `document_id = pi:session:{sessionId}` → 같은 세션은 upsert(최신 상태), 다른 세션은 별도 document(과거 대화 보존).
 - 에이전트 ID는 환경변수로 주입 → Pi 실행 시 목적에 맞게 선택.
 
 **세션 단위 bank를 배제한 이유:**
@@ -63,10 +63,10 @@ const recallQuery = [
 **훅 지점:** `agent_end`
 
 ```
-agent_end → 세션 메시지 필터링 → 포맷 → retain(bankId, content, { documentId: session:{sessionId} })
+agent_end → 세션 메시지 필터링 → 포맷 → retain(bankId, content, { documentId: pi:session:{sessionId} })
 ```
 
-**Upsert 전략:** `document_id = session:{sessionId}`
+**Upsert 전략:** `document_id = pi:session:{sessionId}`
 
 - 같은 세션에서 매 agent_end마다 전체 대화를 upsert.
 - Hindsight가 기존 문서를 삭제하고 재처리 → 항상 최신 상태.
@@ -276,7 +276,7 @@ pi.on('agent_end', async (event, ctx) => {
   const filtered = filterMeaningfulMessages(allMessages)
   const formatted = formatConversation(filtered)
 
-  // document_id = session:{sessionId} → 같은 세션은 upsert, 다른 세션은 별도 document
+  // document_id = pi:session:{sessionId} → 같은 세션은 upsert, 다른 세션은 별도 document
   await retainWithTimeout(bankId, formatted, {
     documentId: `session:${sessionId}`,
   })
