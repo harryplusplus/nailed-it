@@ -17,12 +17,13 @@ Pi 에이전트에 장기 기억을 부여한다. 세션 간, 턴 간 맥락을 
 | -------------- | ------------------------------------------------------------------------------ |
 | 에이전트 ID    | `NI_AGENT_ID` 환경변수 (예: `coding`, `research`)                              |
 | Hindsight Bank | `pi-{agentId}` (예: `pi-coding`, `pi-research`)                                |
-| Document ID    | `{runtime}:session:{sessionId}` (예: `pi:session:abc123`, `oc:session:def456`) |
+| Document ID    | `{runtime}-session-{sessionId}` (예: `pi-session-abc123`, `oc-session-def456`) |
 
 - **1 에이전트 = 1 Hindsight Bank**. 같은 에이전트의 모든 세션이 기억을 공유.
 - 세션이 달라도 같은 bank → 과거 세션에서 학습한 팩트가 자동으로 recall됨 = **진짜 장기 기억**.
 - **같은 목적, 다른 런타임** — Pi와 OpenCode가 같은 `NI_AGENT_ID`로 같은 bank를 공유하되, document ID의 접두사(`pi:`, `oc:`)로 런타임별 대화 분리. 한 bank에서 cross-runtime 기억 축적.
-- `document_id = {runtime}:session:{sessionId}` → 같은 세션은 upsert(최신 상태), 다른 세션/런타임은 별도 document(과거 대화 보존).
+- `document_id = {runtime}-session-{sessionId}` → 같은 세션은 upsert(최신 상태), 다른 세션/런타임은 별도 document(과거 대화 보존).
+- **파일명 호환 포맷** — 콜론 대신 하이픈 사용. document_id와 로그 파일명이 동일 포맷 → 변환/매핑 규칙 불필요.
 - 에이전트 ID는 환경변수로 주입 → Pi 실행 시 목적에 맞게 선택.
 
 **ID 제약 (Hindsight OpenAPI 기준):**
@@ -32,7 +33,7 @@ Pi 에이전트에 장기 기억을 부여한다. 세션 간, 턴 간 맥락을 
 | Bank ID | alphanumeric lowercase + hyphens만 | URL path segment로 사용 (`/v1/default/banks/{bank_id}/...`). 콜론 등 특수문자 금지. |
 | Document ID | 제약 없음 (콜론 포함 가능) | request body에만 전달. URL에 노출되지 않음. |
 
-→ Bank ID는 `pi-coding` (하이픈만), Document ID는 `pi:session:abc123` (콜론 포함) 설계로 안전.
+→ Bank ID는 `pi-coding` (하이픈만), Document ID도 `pi-session-abc123` (하이픈만)으로 파일명 호환 포맷 채택. Hindsight는 콜론을 허용하지만, 파일명/URL 호환성을 위해 하이픈 통일.
 
 **세션 단위 bank를 배제한 이유:**
 
@@ -79,7 +80,7 @@ const recallQuery = [
 **훅 지점:** `agent_end`
 
 ```
-agent_end → 세션 메시지 필터링 → 포맷 → retain(bankId, content, { documentId: `${RUNTIME_PREFIX}:session:${sessionId}` })
+agent_end → 세션 메시지 필터링 → 포맷 → retain(bankId, content, { documentId: `${RUNTIME_PREFIX}-session-${sessionId}` })
 ```
 
 **Upsert 전략:** `document_id = {runtime}:session:{sessionId}`
@@ -324,7 +325,7 @@ pi.on('agent_end', async (event, ctx) => {
 
   // document_id = {runtime}:session:{sessionId} → 같은 세션은 upsert, 다른 세션은 별도 document
   await retainWithTimeout(bankId, formatted, {
-    documentId: `${RUNTIME_PREFIX}:session:${sessionId}`,
+    documentId: `${RUNTIME_PREFIX}-session-${sessionId}`,
   })
 })
 ```
@@ -347,7 +348,8 @@ pi.on('agent_end', async (event, ctx) => {
 
 ```typescript
 // 에러 로그 파일 경로
-const ERROR_LOG_PATH = `${process.env.HOME}/.pi/logs/hindsight-errors.jsonl`
+const ERROR_LOG_DIR = `${process.env.HOME}/.nailed-it/logs`
+const ERROR_LOG_PATH = `${ERROR_LOG_DIR}/${RUNTIME_PREFIX}-session-${sessionId}.jsonl`
 
 function logError(event: string, error: unknown, context?: Record<string, unknown>) {
   try {
@@ -374,24 +376,25 @@ function logError(event: string, error: unknown, context?: Record<string, unknow
 
 ```
 packages/pi/extensions/
-├── hindsight-recall.ts    # Recall 로직 (쿼리 구성, 타임아웃, XML 태그 래핑, systemPrompt 주입)
-├── hindsight-retain.ts   # Retain 로직 (메시지 필터링, 대화 포맷, upsert)
-├── hindsight-client.ts   # 저수준 Hindsight 클라이언트 (AbortController 타임아웃, 에러 로깅)
-├── hindsight-bank.ts     # Bank 관리 (생성, 확인, mission 설정)
-├── hindsight-config.ts   # 상수 설정 + 환경변수
-└── hindsight.ts          # 진입점 — Pi 이벤트 훅 연결
+└── hindsight/
+    ├── index.ts              # 진입점 — Pi 이벤트 훅 연결
+    ├── client.ts             # 저수준 Hindsight 클라이언트 (AbortController 타임아웃, 에러 로깅)
+    ├── bank.ts               # Bank 관리 (생성, 확인, mission 설정)
+    ├── recall.ts             # Recall 로직 (쿼리 구성, 타임아웃, XML 태그 래핑, systemPrompt 주입)
+    ├── retain.ts             # Retain 로직 (메시지 필터링, 대화 포맷, upsert)
+    └── config.ts             # 상수 설정 + 환경변수
 ```
 
 ---
 
 ## 8. 구현 체크리스트
 
-- [ ] `hindsight-config.ts` — 상수 정의 + 환경변수 로드
-- [ ] `hindsight-client.ts` — 저수준 SDK 래퍼 (AbortController 타임아웃, 에러 로깅)
-- [ ] `hindsight-bank.ts` — bank ID 생성, createBank (idempotent), updateBankConfig (mission 설정)
-- [ ] `hindsight-recall.ts` — recall 쿼리 구성, 타임아웃 래핑, `recallResponseToPromptString` 포맷, XML 태그 래핑
-- [ ] `hindsight-retain.ts` — 메시지 필터링, 대화 포맷, upsert retain
-- [ ] `hindsight.ts` — Pi 이벤트 훅 연결
+- [ ] `config.ts` — 상수 정의 + 환경변수 로드
+- [ ] `client.ts` — 저수준 SDK 래퍼 (AbortController 타임아웃, 에러 로깅)
+- [ ] `bank.ts` — bank ID 생성, createBank (idempotent), updateBankConfig (mission 설정)
+- [ ] `recall.ts` — recall 쿼리 구성, 타임아웃 래핑, `recallResponseToPromptString` 포맷, XML 태그 래핑
+- [ ] `retain.ts` — 메시지 필터링, 대화 포맷, upsert retain
+- [ ] `index.ts` — Pi 이벤트 훅 연결
 - [ ] `packages/pi/package.json` — `@vectorize-io/hindsight-client` 의존성 추가
 - [ ] 통합 테스트 — 실제 Pi 세션에서 recall/retain 동작 확인
 - [ ] 타임아웃 튜닝 — 실제 응답 시간 측정 후 상수 조정
