@@ -5,13 +5,17 @@ import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 
+function escapeAppleScript(str: string): string {
+  return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
 async function notifyMacOS(
   title: string,
   body: string,
   sound?: string,
 ): Promise<void> {
-  const soundArg = sound ? ` sound name "${sound}"` : ''
-  const script = `display notification "${body}" with title "${title}"${soundArg}`
+  const soundArg = sound ? ` sound name "${escapeAppleScript(sound)}"` : ''
+  const script = `display notification "${escapeAppleScript(body)}" with title "${escapeAppleScript(title)}"${soundArg}`
   await execFileAsync('osascript', ['-e', script])
 }
 
@@ -38,7 +42,9 @@ export default function (pi: ExtensionAPI) {
         .join('')
       const codepoints = [...text]
       body =
-        codepoints.length > 200 ? codepoints.slice(0, 200).join('') + '…' : text
+        codepoints.length > 200
+          ? codepoints.slice(0, 200).join('') + '...'
+          : text
     }
 
     await notify('Pi', body, 'Funk')
