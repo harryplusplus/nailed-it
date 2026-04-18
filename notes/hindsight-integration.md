@@ -336,39 +336,63 @@ pi.on('agent_end', async (event, ctx) => {
 | 시나리오            | 동작                                                                                   |
 | ------------------- | -------------------------------------------------------------------------------------- |
 | Hindsight 서버 다운 | `session_start`에서 health check → 기능 자동 비활성화. 에이전트는 기억 없이 정상 동작. |
-| Recall 타임아웃     | 빈 결과 반환. 프롬프트에 기억 섹션 생략.                                               |
+| Recall 타임아웃     | 빈 결과 반환 (`<hindsight_recall>` 블록 자체 생략) → 에이전트는 기억 없이 계속 진행. |
 | Retain 타임아웃     | 조용히 실패. 다음 턴에 재시도.                                                         |
 | Bank 생성 실패      | 기능 비활성화. 에이전트 동작 무영향.                                                   |
 | 인증 오류           | `session_start`에서 감지. 사용자에게 notify.                                           |
 
 **원칙:** Hindsight는 부가 기능이다. 장애가 Pi의 핵심 동작을 방해하면 안 된다.
 
+**에러 로깅:** 모든 에러는 JSONL 파일에 기록. 시스템 모니터가 파일 변경을 추적하여 운영자가 인지 가능.
+
+```typescript
+// 에러 로그 파일 경로
+const ERROR_LOG_PATH = `${process.env.HOME}/.pi/logs/hindsight-errors.jsonl`
+
+function logError(event: string, error: unknown, context?: Record<string, unknown>) {
+  try {
+    const entry = JSON.stringify({
+      ts: new Date().toISOString(),
+      event,
+      error: error instanceof Error ? { message: error.message, name: error.name } : String(error),
+      ...context,
+    })
+    appendFileSync(ERROR_LOG_PATH, entry + '\n')
+  } catch {
+    // 로깅 자체가 실패해도 확장 동작에 영향 없음
+  }
+}
+```
+
+- JSONL 포맷 → `jq`, `rg`, 파일 watcher로 쉽게 검색/모니터링.
+- `appendFileSync` → 비동기 I/O 실패 위험 없음. 확장 생명주기와 무관하게 기록 보장.
+- 로그 파일은 `~/.pi/logs/hindsight-errors.jsonl`에 고정. 모니터링 경로 예측 가능.
+
 ---
 
 ## 7. 파일 구조
 
 ```
-.pi/extensions/hindsight/
-├── index.ts          # 진입점 — Pi 이벤트 훅
-├── client.ts         # 저수준 Hindsight 클라이언트 (타임아웃, 재시도)
-├── bank.ts           # Bank 관리 (생성, 확인, 프로필)
-├── recall.ts         # Recall 로직 (쿼리 구성, 포맷, 주입)
-├── retain.ts         # Retain 로직 (필터링, 포맷, upsert)
-├── config.ts         # 상수 설정 + 환경변수
-└── package.json      # @vectorize-io/hindsight-client 의존성
+packages/pi/extensions/
+├── hindsight-recall.ts    # Recall 로직 (쿼리 구성, 타임아웃, XML 태그 래핑, systemPrompt 주입)
+├── hindsight-retain.ts   # Retain 로직 (메시지 필터링, 대화 포맷, upsert)
+├── hindsight-client.ts   # 저수준 Hindsight 클라이언트 (AbortController 타임아웃, 에러 로깅)
+├── hindsight-bank.ts     # Bank 관리 (생성, 확인, mission 설정)
+├── hindsight-config.ts   # 상수 설정 + 환경변수
+└── hindsight.ts          # 진입점 — Pi 이벤트 훅 연결
 ```
 
 ---
 
 ## 8. 구현 체크리스트
 
-- [ ] `config.ts` — 상수 정의 + 환경변수 로드
-- [ ] `client.ts` — 저수준 SDK 래퍼 (AbortController 타임아웃, 에러 핸들링)
-- [ ] `bank.ts` — bank ID 생성, createBank (idempotent), updateBankConfig (mission 설정)
-- [ ] `recall.ts` — recall 쿼리 구성, 타임아웃 래핑, `recallResponseToPromptString` 포맷, XML 태그 래핑
-- [ ] `retain.ts` — 메시지 필터링, 대화 포맷, upsert retain
-- [ ] `index.ts` — Pi 이벤트 훅 연결
-- [ ] `package.json` — 의존성 추가
+- [ ] `hindsight-config.ts` — 상수 정의 + 환경변수 로드
+- [ ] `hindsight-client.ts` — 저수준 SDK 래퍼 (AbortController 타임아웃, 에러 로깅)
+- [ ] `hindsight-bank.ts` — bank ID 생성, createBank (idempotent), updateBankConfig (mission 설정)
+- [ ] `hindsight-recall.ts` — recall 쿼리 구성, 타임아웃 래핑, `recallResponseToPromptString` 포맷, XML 태그 래핑
+- [ ] `hindsight-retain.ts` — 메시지 필터링, 대화 포맷, upsert retain
+- [ ] `hindsight.ts` — Pi 이벤트 훅 연결
+- [ ] `packages/pi/package.json` — `@vectorize-io/hindsight-client` 의존성 추가
 - [ ] 통합 테스트 — 실제 Pi 세션에서 recall/retain 동작 확인
 - [ ] 타임아웃 튜닝 — 실제 응답 시간 측정 후 상수 조정
 - [ ] 에이전트 프로필 분리 — 코딩/리서치 bank 분리 구현
