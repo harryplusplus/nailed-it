@@ -12,8 +12,6 @@ import type {
   RetainResponse,
 } from '@vectorize-io/hindsight-client'
 import {
-  HINDSIGHT_BASE_URL,
-  HINDSIGHT_API_KEY,
   RECALL_TIMEOUT_MS,
   RECALL_BUDGET,
   RECALL_MAX_TOKENS,
@@ -23,21 +21,29 @@ import {
   RUNTIME_PREFIX,
 } from './config.js'
 
-const headers: Record<string, string> = {
-  'User-Agent': 'nailed-it-hindsight/0.1.0',
-}
-if (HINDSIGHT_API_KEY) {
-  headers.Authorization = `Bearer ${HINDSIGHT_API_KEY}`
+export interface HindsightClients {
+  internal: Client
+  highLevel: HindsightClient
+  baseUrl: string
 }
 
-const internalClient: Client = createClient(
-  createConfig({ baseUrl: HINDSIGHT_BASE_URL, headers }),
-)
+export function createClients(
+  baseUrl: string,
+  apiKey?: string,
+): HindsightClients {
+  const headers: Record<string, string> = {
+    'User-Agent': 'nailed-it-hindsight/0.1.0',
+  }
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`
+  }
 
-export const client = new HindsightClient({
-  baseUrl: HINDSIGHT_BASE_URL,
-  apiKey: HINDSIGHT_API_KEY ?? undefined,
-})
+  return {
+    internal: createClient(createConfig({ baseUrl, headers })),
+    highLevel: new HindsightClient({ baseUrl, apiKey }),
+    baseUrl,
+  }
+}
 
 export { recallResponseToPromptString }
 
@@ -67,6 +73,7 @@ export function logError(
 }
 
 export async function recallWithTimeout(
+  clients: HindsightClients,
   bankId: string,
   query: string,
   sessionId: string,
@@ -80,7 +87,7 @@ export async function recallWithTimeout(
 
   try {
     const response = await sdk.recallMemories({
-      client: internalClient,
+      client: clients.internal,
       path: { bank_id: bankId },
       body: { query, budget: RECALL_BUDGET, max_tokens: RECALL_MAX_TOKENS },
       signal: controller.signal,
@@ -106,6 +113,7 @@ export async function recallWithTimeout(
 }
 
 export async function retainWithTimeout(
+  clients: HindsightClients,
   bankId: string,
   content: string,
   options: { documentId: string; context?: string },
@@ -120,7 +128,7 @@ export async function retainWithTimeout(
 
   try {
     const response = await sdk.retainMemories({
-      client: internalClient,
+      client: clients.internal,
       path: { bank_id: bankId },
       body: {
         items: [
@@ -154,11 +162,11 @@ export async function retainWithTimeout(
   }
 }
 
-export async function healthCheck(): Promise<boolean> {
+export async function healthCheck(clients: HindsightClients): Promise<boolean> {
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 3_000)
-    const response = await fetch(`${HINDSIGHT_BASE_URL}/health`, {
+    const response = await fetch(`${clients.baseUrl}/health`, {
       signal: controller.signal,
     })
     clearTimeout(timeoutId)

@@ -1,3 +1,4 @@
+import type { HindsightClients } from './client.js'
 import { retainWithTimeout } from './client.js'
 import { RETAIN_ENABLED, RUNTIME_PREFIX } from './config.js'
 
@@ -44,6 +45,7 @@ export function filterAndFormatMessages(entries: any[]): string {
 }
 
 export async function retainConversation(
+  clients: HindsightClients,
   bankId: string,
   sessionId: string,
   entries: any[],
@@ -57,6 +59,7 @@ export async function retainConversation(
   const documentId = `${RUNTIME_PREFIX}-session-${sessionId}`
 
   await retainWithTimeout(
+    clients,
     bankId,
     formatted,
     { documentId, context: 'coding session' },

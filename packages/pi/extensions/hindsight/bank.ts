@@ -1,4 +1,5 @@
-import { client, healthCheck, logError } from './client.js'
+import type { HindsightClients } from './client.js'
+import { healthCheck, logError } from './client.js'
 import { BANK_ID_PREFIX, DEFAULT_AGENT_ID, AGENT_PROFILES } from './config.js'
 
 export function getBankId(): string {
@@ -7,22 +8,23 @@ export function getBankId(): string {
 }
 
 export async function ensureBankExists(
+  clients: HindsightClients,
   bankId: string,
   sessionId: string,
 ): Promise<boolean> {
-  const healthy = await healthCheck()
+  const healthy = await healthCheck(clients)
   if (!healthy) {
     logError('health_check_failed', 'Hindsight server unreachable', sessionId)
     return false
   }
 
   try {
-    await client.getBankProfile(bankId)
+    await clients.highLevel.getBankProfile(bankId)
     return true
   } catch {}
 
   try {
-    await client.createBank(bankId)
+    await clients.highLevel.createBank(bankId)
     return true
   } catch (e) {
     logError('bank_create_failed', e, sessionId, { bankId })
@@ -31,6 +33,7 @@ export async function ensureBankExists(
 }
 
 export async function configureBankMissions(
+  clients: HindsightClients,
   bankId: string,
   sessionId: string,
 ): Promise<void> {
@@ -39,7 +42,7 @@ export async function configureBankMissions(
   if (!profile) return
 
   try {
-    await client.updateBankConfig(bankId, {
+    await clients.highLevel.updateBankConfig(bankId, {
       retainMission: profile.retainMission,
       observationsMission: profile.observationsMission,
     })

@@ -1,7 +1,3 @@
-export const HINDSIGHT_BASE_URL =
-  process.env.HINDSIGHT_API_URL ?? 'http://localhost:8888'
-export const HINDSIGHT_API_KEY = process.env.HINDSIGHT_API_KEY
-
 export const RECALL_TIMEOUT_MS = 10_000
 export const RECALL_BUDGET = 'mid' as const
 export const RECALL_MAX_TOKENS = 4096
