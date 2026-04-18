@@ -69,6 +69,21 @@ export function logError(
   }
 }
 
+function withTimeout(
+  ms: number,
+  signal?: AbortSignal,
+): { controller: AbortController; cleanup: () => void } {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), ms)
+  const onPiAbort = () => controller.abort()
+  signal?.addEventListener('abort', onPiAbort)
+  const cleanup = () => {
+    clearTimeout(timeoutId)
+    signal?.removeEventListener('abort', onPiAbort)
+  }
+  return { controller, cleanup }
+}
+
 export async function recallWithTimeout(
   clients: HindsightClients,
   bankId: string,
@@ -76,11 +91,7 @@ export async function recallWithTimeout(
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<RecallResponse | null> {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), RECALL_TIMEOUT_MS)
-
-  const onPiAbort = () => controller.abort()
-  signal?.addEventListener('abort', onPiAbort)
+  const { controller, cleanup } = withTimeout(RECALL_TIMEOUT_MS, signal)
 
   try {
     const response = await sdk.recallMemories({
@@ -104,8 +115,7 @@ export async function recallWithTimeout(
     }
     return null
   } finally {
-    clearTimeout(timeoutId)
-    signal?.removeEventListener('abort', onPiAbort)
+    cleanup()
   }
 }
 
@@ -117,11 +127,7 @@ export async function retainWithTimeout(
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<RetainResponse | null> {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), RETAIN_TIMEOUT_MS)
-
-  const onPiAbort = () => controller.abort()
-  signal?.addEventListener('abort', onPiAbort)
+  const { controller, cleanup } = withTimeout(RETAIN_TIMEOUT_MS, signal)
 
   try {
     const response = await sdk.retainMemories({
@@ -154,19 +160,20 @@ export async function retainWithTimeout(
     }
     return null
   } finally {
-    clearTimeout(timeoutId)
-    signal?.removeEventListener('abort', onPiAbort)
+    cleanup()
   }
 }
 
-export async function healthCheck(clients: HindsightClients): Promise<boolean> {
+export async function healthCheck(
+  clients: HindsightClients,
+  signal?: AbortSignal,
+): Promise<boolean> {
   try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 3_000)
+    const { controller, cleanup } = withTimeout(3_000, signal)
     const response = await fetch(`${clients.baseUrl}/health`, {
       signal: controller.signal,
     })
-    clearTimeout(timeoutId)
+    cleanup()
     return response.ok
   } catch {
     return false

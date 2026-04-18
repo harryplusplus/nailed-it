@@ -39,6 +39,7 @@ export default async function (pi: ExtensionAPI) {
       state.clients,
       state.bankId,
       state.sessionId,
+      ctx.signal,
     )
     if (!bankOk) {
       state.recallEnabled = false

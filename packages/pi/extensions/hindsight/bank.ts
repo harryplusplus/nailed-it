@@ -11,8 +11,9 @@ export async function ensureBankExists(
   clients: HindsightClients,
   bankId: string,
   sessionId: string,
+  signal?: AbortSignal,
 ): Promise<boolean> {
-  const healthy = await healthCheck(clients)
+  const healthy = await healthCheck(clients, signal)
   if (!healthy) {
     logError('health_check_failed', 'Hindsight server unreachable', sessionId)
     return false
