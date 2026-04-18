@@ -5,45 +5,56 @@ import { recallAndInject } from './recall.js'
 import { retainConversation } from './retain.js'
 import { RECALL_ENABLED, RETAIN_ENABLED } from './config.js'
 
-let bankId = ''
-let recallEnabled = RECALL_ENABLED
-let retainEnabled = RETAIN_ENABLED
+interface SessionState {
+  bankId: string
+  recallEnabled: boolean
+  retainEnabled: boolean
+}
 
 export default async function (pi: ExtensionAPI) {
+  // State scoped to this extension instance.
+  // Each session_start resets it, so session transitions don't leak state.
+  const state: SessionState = {
+    bankId: '',
+    recallEnabled: RECALL_ENABLED,
+    retainEnabled: RETAIN_ENABLED,
+  }
+
   pi.on('session_start', async (_event, ctx) => {
     const sessionId = ctx.sessionManager.getSessionId()
     setSessionId(sessionId)
 
-    bankId = getBankId()
-    recallEnabled = RECALL_ENABLED
-    retainEnabled = RETAIN_ENABLED
+    // Reset state for new session
+    state.bankId = getBankId()
+    state.recallEnabled = RECALL_ENABLED
+    state.retainEnabled = RETAIN_ENABLED
 
-    const bankOk = await ensureBankExists(bankId)
+    const bankOk = await ensureBankExists(state.bankId)
     if (!bankOk) {
-      recallEnabled = false
-      retainEnabled = false
+      state.recallEnabled = false
+      state.retainEnabled = false
       ctx.ui.notify('Hindsight unavailable — memory disabled', 'warning')
       return
     }
 
-    await configureBankMissions(bankId)
+    await configureBankMissions(state.bankId)
   })
 
   pi.on('before_agent_start', async (event, ctx) => {
-    if (!recallEnabled) return
+    if (!state.recallEnabled) return
 
-    const result = await recallAndInject(bankId, event.prompt, ctx.signal)
+    const result = await recallAndInject(state.bankId, event.prompt, ctx.signal)
     if (!result) return
 
     return { systemPrompt: event.systemPrompt + result.systemPrompt }
   })
 
   pi.on('agent_end', async (_event, ctx) => {
-    if (!retainEnabled) return
+    if (!state.retainEnabled) return
 
     const sessionId = ctx.sessionManager.getSessionId()
     const entries = ctx.sessionManager.getBranch()
 
-    await retainConversation(bankId, sessionId, entries, ctx.signal)
+    await retainConversation(state.bankId, sessionId, entries, ctx.signal)
   })
 }
