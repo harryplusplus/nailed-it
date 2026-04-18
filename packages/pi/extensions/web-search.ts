@@ -17,7 +17,7 @@ export default function (pi: ExtensionAPI) {
   const apiKey = parseOllamaApiKey()
 
   pi.registerTool({
-    name: 'web-search',
+    name: 'web_search',
     label: 'Web Search',
     description:
       "Performs a web search for a single query and returns relevant results using the Ollama's web search API.",

@@ -13,7 +13,7 @@ export default function (pi: ExtensionAPI) {
   const apiKey = parseOllamaApiKey()
 
   pi.registerTool({
-    name: 'web-fetch',
+    name: 'web_fetch',
     label: 'Web Fetch',
     description:
       'Fetches a single web page by URL and returns its content using the Ollama Web fetch API.',
