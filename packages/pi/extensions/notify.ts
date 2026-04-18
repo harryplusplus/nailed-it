@@ -40,11 +40,11 @@ export default function (pi: ExtensionAPI) {
         )
         .map(b => b.text)
         .join('')
-      const codepoints = [...text]
+      const graphemes = [...new Intl.Segmenter().segment(text)].map(
+        s => s.segment,
+      )
       body =
-        codepoints.length > 200
-          ? codepoints.slice(0, 200).join('') + '...'
-          : text
+        graphemes.length > 200 ? graphemes.slice(0, 200).join('') + '...' : text
     }
 
     await notify('Pi', body, 'Funk')

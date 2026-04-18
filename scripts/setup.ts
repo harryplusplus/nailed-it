@@ -33,7 +33,7 @@ const globalOpencodePluginsDir = path.join(globalOpencodeConfigDir, 'plugins')
 const repoSkillsDir = path.join(repoRoot, 'skills')
 const globalSkillsDir = path.join(os.homedir(), '.agents', 'skills')
 
-main()
+await main()
 
 async function main() {
   console.log('Checking repository root...')

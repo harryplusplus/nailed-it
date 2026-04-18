@@ -89,9 +89,11 @@ export default function (pi: ExtensionAPI) {
           text += '\n'
           if (r.content) {
             text += `Content: `
-            const codepoints = [...r.content]
-            if (codepoints.length > 200) {
-              text += `${codepoints.slice(0, 200).join('')}...`
+            const graphemes = [...new Intl.Segmenter().segment(r.content)].map(
+              s => s.segment,
+            )
+            if (graphemes.length > 200) {
+              text += `${graphemes.slice(0, 200).join('')}...`
             } else {
               text += r.content
             }
