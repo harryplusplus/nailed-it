@@ -55,7 +55,7 @@ async function setupSkills() {
   // await linkSkills()
 }
 
-async function linkSkills() {
+async function _linkSkills() {
   const skillDirs = await fs.readdir(repoSkillsDir)
   for (const dir of skillDirs) {
     const src = path.join(repoSkillsDir, dir)
