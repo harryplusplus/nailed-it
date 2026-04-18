@@ -1,15 +1,10 @@
 {
   "version": 1,
   "skills": {
-    "hindsight-architect": {
-      "source": "vectorize-io/hindsight",
+    "chat-sdk": {
+      "source": "vercel/chat",
       "sourceType": "github",
-      "computedHash": "4df3e7c9108f58efd71c42a3b12b20f9391d316a3cb704472a341b6733073b3d"
-    },
-    "hindsight-docs": {
-      "source": "vectorize-io/hindsight",
-      "sourceType": "github",
-      "computedHash": "4882c682c989c026b42e94fbd5288901cc4bce19dc1fc87da30b1a7880a56908"
+      "computedHash": "f10f9eb1289aa7a1095d77954ea70c6ee6ab217f18af46a90d57a4b246d73af3"
     }
   }
 }

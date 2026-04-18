@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 
 # Test
 /test/
+
+# Skills
+/.agents/skills/
