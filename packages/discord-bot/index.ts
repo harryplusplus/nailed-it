@@ -1,10 +1,3 @@
-/**
- * Discord Bot for Pi Coding Agent
- *
- * Bridges Discord threads to Pi SDK sessions.
- * @mention the bot to start a conversation, then chat naturally in the thread.
- */
-
 import {
   Client,
   GatewayIntentBits,
@@ -23,15 +16,11 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// ─── Config ────────────────────────────────────────────────────────
-
 const CWD = process.cwd()
 const SESSIONS_DIR = resolve(
   dirname(fileURLToPath(import.meta.url)),
   'sessions',
 )
-
-// ─── Types ──────────────────────────────────────────────────────────
 
 interface SessionMapping {
   threadId: string
@@ -46,8 +35,6 @@ interface SessionEntry {
   queue: Array<{ text: string; attachments: Attachment[] }>
 }
 
-// ─── Session Pool ────────────────────────────────────────────────────
-
 const sessions = new Map<string, SessionEntry>()
 
 async function getOrCreateSession(threadId: string): Promise<SessionEntry> {
@@ -59,7 +46,6 @@ async function getOrCreateSession(threadId: string): Promise<SessionEntry> {
   let sessionManager: SessionManager
 
   if (mapping) {
-    // Resume existing session
     sessionManager = SessionManager.open(mapping.sessionFile)
     const result = await createAgentSession({
       sessionManager,
@@ -68,7 +54,6 @@ async function getOrCreateSession(threadId: string): Promise<SessionEntry> {
     })
     session = result.session
   } else {
-    // Create new session
     sessionManager = SessionManager.create(CWD)
     const result = await createAgentSession({
       sessionManager,
@@ -77,7 +62,6 @@ async function getOrCreateSession(threadId: string): Promise<SessionEntry> {
     })
     session = result.session
 
-    // Save mapping
     const sessionFile = sessionManager.getSessionFile()
     if (sessionFile) {
       await saveMapping(threadId, {
@@ -97,8 +81,6 @@ async function getOrCreateSession(threadId: string): Promise<SessionEntry> {
   sessions.set(threadId, entry)
   return entry
 }
-
-// ─── Mapping File I/O ───────────────────────────────────────────────
 
 async function loadMapping(threadId: string): Promise<SessionMapping | null> {
   try {
@@ -124,8 +106,6 @@ async function saveMapping(
   )
 }
 
-// ─── Response Collection ─────────────────────────────────────────────
-
 async function collectPiResponse(
   session: AgentSession,
   prompt: string,
@@ -149,8 +129,6 @@ async function collectPiResponse(
   return response
 }
 
-// ─── Attachment Handling ─────────────────────────────────────────────
-
 async function buildPrompt(
   text: string,
   attachments: Attachment[],
@@ -172,8 +150,6 @@ async function buildPrompt(
   return prompt
 }
 
-// ─── Message Queue Processing ───────────────────────────────────────
-
 async function processQueue(
   threadId: string,
   channel: Message['channel'],
@@ -190,20 +166,13 @@ async function processQueue(
       }
       const prompt = await buildPrompt(text, attachments)
       const response = await collectPiResponse(entry.session, prompt)
-      if (response) {
-        await (channel as { send(content: string): Promise<unknown> }).send(
-          response,
-        )
-      } else {
-        await (channel as { send(content: string): Promise<unknown> }).send(
-          '(no response)',
-        )
-      }
+      const send = channel as { send(content: string): Promise<unknown> }
+      await send.send(response || '(no response)')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
+      const msg = err instanceof Error ? err.message : 'Unknown error'
       try {
         await (channel as { send(content: string): Promise<unknown> }).send(
-          `❌ Error: ${message}`,
+          `❌ Error: ${msg}`,
         )
       } catch {
         // Channel might be unavailable
@@ -213,8 +182,6 @@ async function processQueue(
     }
   }
 }
-
-// ─── Discord Bot ────────────────────────────────────────────────────
 
 const client = new Client({
   intents: [
@@ -228,7 +195,6 @@ const client = new Client({
 client.on(Events.ClientReady, async () => {
   console.log(`🤖 Logged in as ${client.user?.tag ?? 'unknown'}`)
 
-  // Register /stop slash command
   const stopCommand = new SlashCommandBuilder()
     .setName('stop')
     .setDescription('현재 실행 중인 Pi 작업을 중단합니다')
@@ -238,34 +204,27 @@ client.on(Events.ClientReady, async () => {
 })
 
 client.on(Events.MessageCreate, async (message: Message) => {
-  // Ignore bot messages
   if (message.author.bot) return
 
   const threadId = message.channelId
-
-  // Check if the message is in a thread we're tracking, or if it's a new mention
   const isMention = client.user ? message.mentions.has(client.user.id) : false
   const isTrackedThread = sessions.has(threadId)
 
   if (!isMention && !isTrackedThread) return
 
-  // Remove the bot mention from the message text
   const content = message.content
     .replace(/<@!\d+>/g, '')
     .replace(/<@\d+>/g, '')
     .trim()
   if (!content && message.attachments.size === 0) return
 
-  // Get or create session
   const entry = await getOrCreateSession(threadId)
 
-  // Enqueue message
   entry.queue.push({
     text: content,
     attachments: [...message.attachments.values()],
   })
 
-  // Process queue
   processQueue(threadId, message.channel).catch(console.error)
 })
 
@@ -283,8 +242,6 @@ client.on(Events.InteractionCreate, async interaction => {
     await interaction.reply('실행 중인 작업이 없습니다.')
   }
 })
-
-// ─── Start ──────────────────────────────────────────────────────────
 
 const token = process.env.DISCORD_BOT_TOKEN
 if (!token) {
