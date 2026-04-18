@@ -13,7 +13,9 @@
   },
   "pi": {
     "extensions": [
-      "extensions"
+      "extensions/temperature-zero.ts",
+      "extensions/web-search.ts",
+      "extensions/web-fetch.ts"
     ]
   }
 }
