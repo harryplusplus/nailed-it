@@ -22,6 +22,15 @@ Pi 에이전트에 장기 기억을 부여한다. 세션 간, 턴 간 맥락을 
 - `document_id = {runtime}:session:{sessionId}` → 같은 세션은 upsert(최신 상태), 다른 세션/런타임은 별도 document(과거 대화 보존).
 - 에이전트 ID는 환경변수로 주입 → Pi 실행 시 목적에 맞게 선택.
 
+**ID 제약 (Hindsight OpenAPI 기준):**
+
+| ID | 허용 문자 | 이유 |
+|----|-----------|------|
+| Bank ID | alphanumeric lowercase + hyphens만 | URL path segment로 사용 (`/v1/default/banks/{bank_id}/...`). 콜론 등 특수문자 금지. |
+| Document ID | 제약 없음 (콜론 포함 가능) | request body에만 전달. URL에 노출되지 않음. |
+
+→ Bank ID는 `pi-coding` (하이픈만), Document ID는 `pi:session:abc123` (콜론 포함) 설계로 안전.
+
 **세션 단위 bank를 배제한 이유:**
 
 - 세션마다 bank를 나누면 세션 종료 후 기억이 고립 → 장기 기억의 의미 상실.
