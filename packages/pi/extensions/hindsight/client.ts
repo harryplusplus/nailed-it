@@ -1,16 +1,5 @@
 import { appendFileSync, mkdirSync } from 'node:fs'
 import {
-  HindsightClient,
-  createClient,
-  createConfig,
-  sdk,
-} from '@vectorize-io/hindsight-client'
-import type {
-  Client,
-  RecallResponse,
-  RetainResponse,
-} from '@vectorize-io/hindsight-client'
-import {
   RECALL_TIMEOUT_MS,
   RECALL_BUDGET,
   RECALL_MAX_TOKENS,
@@ -20,28 +9,20 @@ import {
   RUNTIME_PREFIX,
 } from './config.js'
 
-export interface HindsightClients {
-  internal: Client
-  highLevel: HindsightClient
+export interface HindsightApi {
   baseUrl: string
+  headers: Record<string, string>
 }
 
-export function createClients(
-  baseUrl: string,
-  apiKey?: string,
-): HindsightClients {
+export function createApi(baseUrl: string, apiKey?: string): HindsightApi {
   const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
     'User-Agent': 'nailed-it-hindsight/0.1.0',
   }
   if (apiKey) {
     headers.Authorization = `Bearer ${apiKey}`
   }
-
-  return {
-    internal: createClient(createConfig({ baseUrl, headers })),
-    highLevel: new HindsightClient({ baseUrl, apiKey }),
-    baseUrl,
-  }
+  return { baseUrl, headers }
 }
 
 export function logError(
@@ -84,8 +65,60 @@ function withTimeout(
   return { controller, cleanup }
 }
 
-export async function recallWithTimeout(
-  clients: HindsightClients,
+async function request(
+  api: HindsightApi,
+  method: string,
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const url = `${api.baseUrl}${path}`
+  return fetch(url, {
+    method,
+    headers: api.headers,
+    body: body ? JSON.stringify(body) : undefined,
+    signal,
+  })
+}
+
+export async function healthCheck(
+  api: HindsightApi,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  try {
+    const { controller, cleanup } = withTimeout(3_000, signal)
+    const res = await request(
+      api,
+      'GET',
+      '/health',
+      undefined,
+      controller.signal,
+    )
+    cleanup()
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export interface RecallResult {
+  text: string
+  type: string
+  id: string
+  context?: string
+  entities?: string[]
+  occurred_start?: string
+  occurred_end?: string
+}
+
+export interface RecallResponse {
+  results: RecallResult[]
+  entities?: Record<string, unknown>
+  trace?: Record<string, unknown>
+}
+
+export async function recallMemories(
+  api: HindsightApi,
   bankId: string,
   query: string,
   sessionId: string,
@@ -94,19 +127,22 @@ export async function recallWithTimeout(
   const { controller, cleanup } = withTimeout(RECALL_TIMEOUT_MS, signal)
 
   try {
-    const response = await sdk.recallMemories({
-      client: clients.internal,
-      path: { bank_id: bankId },
-      body: { query, budget: RECALL_BUDGET, max_tokens: RECALL_MAX_TOKENS },
-      signal: controller.signal,
-    })
+    const res = await request(
+      api,
+      'POST',
+      `/v1/default/banks/${bankId}/memories/recall`,
+      { query, budget: RECALL_BUDGET, max_tokens: RECALL_MAX_TOKENS },
+      controller.signal,
+    )
 
-    if (!response.data) {
-      logError('recall_empty', 'No data in response', sessionId)
+    if (!res.ok) {
+      logError('recall_error', `HTTP ${res.status}`, sessionId)
       return null
     }
 
-    return response.data as RecallResponse
+    const data = (await res.json()) as RecallResponse
+    if (!data.results || data.results.length === 0) return null
+    return data
   } catch (e) {
     if (controller.signal.aborted && !signal?.aborted) {
       logError('recall_timeout', e, sessionId, { timeoutMs: RECALL_TIMEOUT_MS })
@@ -119,8 +155,16 @@ export async function recallWithTimeout(
   }
 }
 
-export async function retainWithTimeout(
-  clients: HindsightClients,
+export interface RetainResponse {
+  success: boolean
+  bank_id: string
+  items_count: number
+  async: boolean
+  operation_id?: string
+}
+
+export async function retainMemories(
+  api: HindsightApi,
   bankId: string,
   content: string,
   options: { documentId: string; context?: string },
@@ -130,10 +174,11 @@ export async function retainWithTimeout(
   const { controller, cleanup } = withTimeout(RETAIN_TIMEOUT_MS, signal)
 
   try {
-    const response = await sdk.retainMemories({
-      client: clients.internal,
-      path: { bank_id: bankId },
-      body: {
+    const res = await request(
+      api,
+      'POST',
+      `/v1/default/banks/${bankId}/memories`,
+      {
         items: [
           {
             content,
@@ -143,15 +188,15 @@ export async function retainWithTimeout(
         ],
         async: RETAIN_ASYNC,
       },
-      signal: controller.signal,
-    })
+      controller.signal,
+    )
 
-    if (!response.data) {
-      logError('retain_empty', 'No data in response', sessionId)
+    if (!res.ok) {
+      logError('retain_error', `HTTP ${res.status}`, sessionId)
       return null
     }
 
-    return response.data as RetainResponse
+    return (await res.json()) as RetainResponse
   } catch (e) {
     if (controller.signal.aborted && !signal?.aborted) {
       logError('retain_timeout', e, sessionId, { timeoutMs: RETAIN_TIMEOUT_MS })
@@ -164,17 +209,57 @@ export async function retainWithTimeout(
   }
 }
 
-export async function healthCheck(
-  clients: HindsightClients,
+export async function getBankProfile(
+  api: HindsightApi,
+  bankId: string,
   signal?: AbortSignal,
 ): Promise<boolean> {
   try {
-    const { controller, cleanup } = withTimeout(3_000, signal)
-    const response = await fetch(`${clients.baseUrl}/health`, {
-      signal: controller.signal,
-    })
-    cleanup()
-    return response.ok
+    const res = await request(
+      api,
+      'GET',
+      `/v1/default/banks/${bankId}/profile`,
+      undefined,
+      signal,
+    )
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export async function createBank(
+  api: HindsightApi,
+  bankId: string,
+  signal?: AbortSignal,
+): Promise<boolean> {
+  try {
+    const res = await request(
+      api,
+      'PUT',
+      `/v1/default/banks/${bankId}`,
+      {},
+      signal,
+    )
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export async function updateBankConfig(
+  api: HindsightApi,
+  bankId: string,
+  updates: Record<string, string>,
+): Promise<boolean> {
+  try {
+    const res = await request(
+      api,
+      'PATCH',
+      `/v1/default/banks/${bankId}/config`,
+      { updates },
+    )
+    return res.ok
   } catch {
     return false
   }

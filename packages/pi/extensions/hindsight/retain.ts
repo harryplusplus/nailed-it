@@ -1,5 +1,5 @@
-import type { HindsightClients } from './client.js'
-import { retainWithTimeout } from './client.js'
+import type { HindsightApi } from './client.js'
+import { retainMemories } from './client.js'
 import { RUNTIME_PREFIX } from './config.js'
 
 function extractTextContent(content: unknown): string {
@@ -45,7 +45,7 @@ export function filterAndFormatMessages(entries: any[]): string {
 }
 
 export async function retainConversation(
-  clients: HindsightClients,
+  api: HindsightApi,
   bankId: string,
   sessionId: string,
   entries: any[],
@@ -56,8 +56,8 @@ export async function retainConversation(
 
   const documentId = `${RUNTIME_PREFIX}-session-${sessionId}`
 
-  await retainWithTimeout(
-    clients,
+  await retainMemories(
+    api,
     bankId,
     formatted,
     { documentId, context: 'coding session' },

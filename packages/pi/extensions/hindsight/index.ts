@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
-import type { HindsightClients } from './client.js'
-import { createClients } from './client.js'
+import type { HindsightApi } from './client.js'
+import { createApi } from './client.js'
 import { getBankId, ensureBankExists, configureBankMissions } from './bank.js'
 import { recallAndInject } from './recall.js'
 import { retainConversation } from './retain.js'
@@ -8,7 +8,7 @@ import { retainConversation } from './retain.js'
 interface SessionState {
   sessionId: string
   bankId: string
-  clients: HindsightClients
+  api: HindsightApi
   recallEnabled: boolean
   retainEnabled: boolean
 }
@@ -20,7 +20,7 @@ function initState(): SessionState {
   return {
     sessionId: '',
     bankId: getBankId(),
-    clients: createClients(baseUrl, apiKey),
+    api: createApi(baseUrl, apiKey),
     recallEnabled: true,
     retainEnabled: true,
   }
@@ -36,7 +36,7 @@ export default async function (pi: ExtensionAPI) {
     state.retainEnabled = true
 
     const bankOk = await ensureBankExists(
-      state.clients,
+      state.api,
       state.bankId,
       state.sessionId,
       ctx.signal,
@@ -48,14 +48,14 @@ export default async function (pi: ExtensionAPI) {
       return
     }
 
-    await configureBankMissions(state.clients, state.bankId, state.sessionId)
+    await configureBankMissions(state.api, state.bankId, state.sessionId)
   })
 
   pi.on('before_agent_start', async (event, ctx) => {
     if (!state.recallEnabled) return
 
     const result = await recallAndInject(
-      state.clients,
+      state.api,
       state.bankId,
       event.prompt,
       state.sessionId,
@@ -73,7 +73,7 @@ export default async function (pi: ExtensionAPI) {
     const entries = ctx.sessionManager.getBranch()
 
     await retainConversation(
-      state.clients,
+      state.api,
       state.bankId,
       sessionId,
       entries,

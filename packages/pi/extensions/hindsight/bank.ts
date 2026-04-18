@@ -1,5 +1,11 @@
-import type { HindsightClients } from './client.js'
-import { healthCheck, logError } from './client.js'
+import type { HindsightApi } from './client.js'
+import {
+  healthCheck,
+  getBankProfile,
+  createBank,
+  updateBankConfig,
+  logError,
+} from './client.js'
 import { BANK_ID_PREFIX, DEFAULT_AGENT_ID, AGENT_PROFILES } from './config.js'
 
 export function getBankId(): string {
@@ -8,33 +14,33 @@ export function getBankId(): string {
 }
 
 export async function ensureBankExists(
-  clients: HindsightClients,
+  api: HindsightApi,
   bankId: string,
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<boolean> {
-  const healthy = await healthCheck(clients, signal)
+  const healthy = await healthCheck(api, signal)
   if (!healthy) {
     logError('health_check_failed', 'Hindsight server unreachable', sessionId)
     return false
   }
 
-  try {
-    await clients.highLevel.getBankProfile(bankId)
-    return true
-  } catch {}
+  const exists = await getBankProfile(api, bankId, signal)
+  if (exists) return true
 
-  try {
-    await clients.highLevel.createBank(bankId)
-    return true
-  } catch (e) {
-    logError('bank_create_failed', e, sessionId, { bankId })
+  const created = await createBank(api, bankId, signal)
+  if (!created) {
+    logError('bank_create_failed', 'Failed to create bank', sessionId, {
+      bankId,
+    })
     return false
   }
+
+  return true
 }
 
 export async function configureBankMissions(
-  clients: HindsightClients,
+  api: HindsightApi,
   bankId: string,
   sessionId: string,
 ): Promise<void> {
@@ -42,12 +48,14 @@ export async function configureBankMissions(
   const profile = AGENT_PROFILES[agentId]
   if (!profile) return
 
-  try {
-    await clients.highLevel.updateBankConfig(bankId, {
-      retainMission: profile.retainMission,
-      observationsMission: profile.observationsMission,
+  const ok = await updateBankConfig(api, bankId, {
+    retain_mission: profile.retainMission,
+    observations_mission: profile.observationsMission,
+  })
+  if (!ok) {
+    logError('bank_config_failed', 'Failed to update bank config', sessionId, {
+      bankId,
+      agentId,
     })
-  } catch (e) {
-    logError('bank_config_failed', e, sessionId, { bankId, agentId })
   }
 }

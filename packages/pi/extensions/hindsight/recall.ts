@@ -1,25 +1,33 @@
-import { recallWithTimeout } from './client.js'
-import type { HindsightClients } from './client.js'
-import { recallResponseToPromptString } from '@vectorize-io/hindsight-client'
+import type { HindsightApi, RecallResponse } from './client.js'
+import { recallMemories } from './client.js'
 import { RECALL_PROMPT_HEADER, RECALL_PROMPT_FOOTER } from './config.js'
 
+function recallResponseToPromptString(response: RecallResponse): string {
+  return response.results
+    .map(r => {
+      const parts = [r.text]
+      if (r.context) parts.push(`  context: ${r.context}`)
+      if (r.entities?.length) parts.push(`  entities: ${r.entities.join(', ')}`)
+      return parts.join('\n')
+    })
+    .join('\n\n')
+}
+
 export async function recallAndInject(
-  clients: HindsightClients,
+  api: HindsightApi,
   bankId: string,
   userMessage: string,
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<{ systemPrompt: string } | undefined> {
-  const response = await recallWithTimeout(
-    clients,
+  const response = await recallMemories(
+    api,
     bankId,
     userMessage,
     sessionId,
     signal,
   )
-  if (!response || !response.results || response.results.length === 0) {
-    return undefined
-  }
+  if (!response) return undefined
 
   const memorySection = recallResponseToPromptString(response)
 
