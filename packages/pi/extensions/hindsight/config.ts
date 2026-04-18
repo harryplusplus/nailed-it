@@ -1,18 +1,8 @@
-export const RECALL_TIMEOUT_MS = 10_000
-export const RECALL_BUDGET = 'mid' as const
-export const RECALL_MAX_TOKENS = 4096
-
-export const RETAIN_TIMEOUT_MS = 5_000
-export const RETAIN_ASYNC = true
-
-export const BANK_ID_PREFIX = 'pi-'
-export const DEFAULT_AGENT_ID = 'coding'
-export const RUNTIME_PREFIX = 'pi'
+import os from 'node:os'
+import path from 'node:path'
 
 export const RECALL_PROMPT_HEADER = '<hindsight_recall>'
 export const RECALL_PROMPT_FOOTER = '</hindsight_recall>'
-
-export const ERROR_LOG_DIR = `${process.env.HOME}/.nailed-it/logs`
 
 export interface AgentProfile {
   retainMission: string
@@ -32,4 +22,21 @@ export const AGENT_PROFILES: Record<string, AgentProfile> = {
     observationsMission:
       'Observations are stable facts about research domains and user interests. Include recurring themes and knowledge gaps. Ignore one-off events.',
   },
+}
+
+export type Options = {
+  bankId: string
+  recallTimeoutMs: number
+  retainTimeoutMs: number
+  logsDir: string
+}
+
+export function parseOptions(): Options {
+  const bankId = process.env.HINDSIGHT_BANK_ID
+  if (!bankId) {
+    throw new Error('HINDSIGHT_BANK_ID is required')
+  }
+
+  const logsDir = path.join(os.homedir(), '.nailed-it', 'logs')
+  return { bankId, recallTimeoutMs: 10_000, retainTimeoutMs: 5_000, logsDir }
 }

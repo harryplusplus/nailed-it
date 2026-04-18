@@ -5,27 +5,6 @@ import { getBankId, ensureBankExists, configureBankMissions } from './bank.js'
 import { recallAndInject } from './recall.js'
 import { retainConversation } from './retain.js'
 
-interface SessionState {
-  sessionId: string
-  bankId: string
-  api: HindsightApi
-  recallEnabled: boolean
-  retainEnabled: boolean
-}
-
-function initState(): SessionState {
-  const baseUrl = process.env.HINDSIGHT_API_URL ?? 'http://localhost:8888'
-  const apiKey = process.env.HINDSIGHT_API_KEY
-
-  return {
-    sessionId: '',
-    bankId: getBankId(),
-    api: createApi(baseUrl, apiKey),
-    recallEnabled: true,
-    retainEnabled: true,
-  }
-}
-
 export default async function (pi: ExtensionAPI) {
   const state = initState()
 
