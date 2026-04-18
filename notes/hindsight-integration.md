@@ -140,7 +140,7 @@ try {
 **타임아웃 시 동작:**
 
 - recall: 빈 결과 반환 (프롬프트에 "Recalled Memories" 섹션 생략) → 에이전트는 기억 없이 계속 진행.
-- retain: 조용히 실패 (다음 턴에 재시도됨) → 에이전트 동작에 영향 없음.
+- retain: 조용히 실패 (async 모드에서는 HTTP 응답만 타임아웃, 팩트 추출은 서버에서 비동기 진행) → 에이전트 동작에 영향 없음.
 
 ---
 
@@ -159,9 +159,9 @@ const RECALL_MAX_TOKENS = 4096 // recall 결과 최대 토큰
 const RECALL_ENABLED = true // recall on/off
 
 // ─── Retain ───
-const RETAIN_TIMEOUT_MS = 30_000 // retain 타임아웃 (ms)
+const RETAIN_TIMEOUT_MS = 5_000 // retain 타임아웃 (ms) — async 모드에서는 HTTP 응답만 대기하므로 충분
 const RETAIN_ENABLED = true // retain on/off
-const RETAIN_ASYNC = false // true면 백그라운드 처리 (빠르지만 즉시 검색 불가)
+const RETAIN_ASYNC = true // 백그라운드 처리 — 즉시 리턴, 팩트 추출은 비동기로 진행
 
 // ─── Agent / Bank ───
 const BANK_ID_PREFIX = 'pi-' // bank ID 접두사
