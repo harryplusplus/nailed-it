@@ -4,15 +4,6 @@ import type {
   RetainResponse,
 } from '@vectorize-io/hindsight-client'
 import { recallResponseToPromptString } from '@vectorize-io/hindsight-client'
-import {
-  RECALL_TIMEOUT_MS,
-  RECALL_BUDGET,
-  RECALL_MAX_TOKENS,
-  RETAIN_TIMEOUT_MS,
-  RETAIN_ASYNC,
-  ERROR_LOG_DIR,
-  RUNTIME_PREFIX,
-} from './config.js'
 
 export type { RecallResponse, RetainResponse }
 export { recallResponseToPromptString }

@@ -1,6 +1,6 @@
 import type { HindsightApi } from './client.js'
 import { recallMemories, recallResponseToPromptString } from './client.js'
-import { RECALL_PROMPT_HEADER, RECALL_PROMPT_FOOTER } from './config.js'
+import { RECALL_PROMPT_HEADER, RECALL_PROMPT_FOOTER } from './configs.js'
 
 export async function recallAndInject(
   api: HindsightApi,

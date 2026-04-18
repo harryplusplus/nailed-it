@@ -1,6 +1,6 @@
 import type { HindsightApi } from './client.js'
 import { retainMemories } from './client.js'
-import { RUNTIME_PREFIX } from './config.js'
+import { RUNTIME_PREFIX } from './configs.js'
 
 function extractTextContent(content: unknown): string {
   if (typeof content === 'string') return content

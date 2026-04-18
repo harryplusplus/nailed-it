@@ -6,7 +6,7 @@ import {
   updateBankConfig,
   logError,
 } from './client.js'
-import { BANK_ID_PREFIX, DEFAULT_AGENT_ID, AGENT_PROFILES } from './config.js'
+import { BANK_ID_PREFIX, DEFAULT_AGENT_ID, AGENT_PROFILES } from './configs.js'
 
 export function getBankId(): string {
   const agentId = process.env.NI_AGENT_ID ?? DEFAULT_AGENT_ID
