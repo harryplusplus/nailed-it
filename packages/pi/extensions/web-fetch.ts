@@ -58,7 +58,9 @@ export default function (pi: ExtensionAPI) {
     renderResult({ details }, { expanded }) {
       let text = ''
       if (details.title) {
-        text += details.title
+        text += `Title: ${details.title}`
+      } else {
+        text += 'No title'
       }
 
       if (expanded) {

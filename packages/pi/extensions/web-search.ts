@@ -72,15 +72,34 @@ export default function (pi: ExtensionAPI) {
       let text = `${details.results.length} results`
       if (expanded) {
         for (const r of details.results) {
-          text += `\n${r.title}`
-          text += `\n${r.url}`
-          const codepoints = [...r.content]
-          if (codepoints.length > 200) {
-            text += `\n${codepoints.slice(0, 200).join('')}...\n`
-          } else {
-            text += `\n${r.content}`
-          }
           text += '\n'
+          if (r.title) {
+            text += `Title: ${r.title}`
+          } else {
+            text += 'No title'
+          }
+
+          text += '\n'
+          if (r.url) {
+            text += `URL: ${r.url}`
+          } else {
+            text += 'No URL'
+          }
+
+          text += '\n'
+          if (r.content) {
+            text += `Content: `
+            const codepoints = [...r.content]
+            if (codepoints.length > 200) {
+              text += `${codepoints.slice(0, 200).join('')}...`
+            } else {
+              text += r.content
+            }
+          } else {
+            text += 'No content'
+          }
+
+          text += '\n---\n'
         }
       }
 
