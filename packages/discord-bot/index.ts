@@ -15,6 +15,15 @@ import {
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  Effect,
+  Layer,
+  Context,
+  Queue,
+  Ref,
+  ManagedRuntime,
+  Fiber,
+} from 'effect'
 
 const CWD = process.cwd()
 const SESSIONS_DIR = resolve(
@@ -31,222 +40,299 @@ interface SessionMapping {
 interface SessionEntry {
   session: AgentSession
   sessionManager: SessionManager
-  busy: boolean
-  queue: Array<{ text: string; attachments: Attachment[] }>
+  queue: Queue.Queue<{ text: string; attachments: Attachment[] }>
+  fiber: Fiber.RuntimeFiber<never, void>
 }
 
-const sessions = new Map<string, SessionEntry>()
+// ─── Services ────────────────────────────────────────────────────────────────
 
-async function getOrCreateSession(threadId: string): Promise<SessionEntry> {
-  const existing = sessions.get(threadId)
-  if (existing) return existing
+class DiscordClient extends Context.Tag('DiscordClient')<
+  DiscordClient,
+  Client
+>() {}
 
-  const mapping = await loadMapping(threadId)
-  let session: AgentSession
-  let sessionManager: SessionManager
+class SessionStore extends Context.Tag('SessionStore')<
+  SessionStore,
+  Ref.Ref<Map<string, SessionEntry>>
+>() {}
 
-  if (mapping) {
-    sessionManager = SessionManager.open(mapping.sessionFile)
-    const result = await createAgentSession({
-      sessionManager,
-      cwd: CWD,
-      tools: createCodingTools(CWD),
-    })
-    session = result.session
-  } else {
-    sessionManager = SessionManager.create(CWD)
-    const result = await createAgentSession({
-      sessionManager,
-      cwd: CWD,
-      tools: createCodingTools(CWD),
-    })
-    session = result.session
+// ─── Session lifecycle ──────────────────────────────────────────────────────
 
-    const sessionFile = sessionManager.getSessionFile()
-    if (sessionFile) {
-      await saveMapping(threadId, {
-        threadId,
-        sessionFile,
-        createdAt: new Date().toISOString(),
-      })
-    }
-  }
-
-  const entry: SessionEntry = {
-    session,
-    sessionManager,
-    busy: false,
-    queue: [],
-  }
-  sessions.set(threadId, entry)
-  return entry
-}
-
-async function loadMapping(threadId: string): Promise<SessionMapping | null> {
-  try {
-    const data = await readFile(
-      resolve(SESSIONS_DIR, `${threadId}.json`),
-      'utf-8',
-    )
-    return JSON.parse(data) as SessionMapping
-  } catch {
-    return null
-  }
-}
-
-async function saveMapping(
-  threadId: string,
-  mapping: SessionMapping,
-): Promise<void> {
-  await mkdir(SESSIONS_DIR, { recursive: true })
-  await writeFile(
-    resolve(SESSIONS_DIR, `${threadId}.json`),
-    JSON.stringify(mapping, null, 2),
-    'utf-8',
-  )
-}
-
-async function collectPiResponse(
-  session: AgentSession,
-  prompt: string,
-): Promise<string> {
-  let response = ''
-  const unsub = session.subscribe(event => {
-    if (
-      event.type === 'message_update' &&
-      event.assistantMessageEvent.type === 'text_delta'
-    ) {
-      response += event.assistantMessageEvent.delta
-    }
+const loadMapping = (threadId: string) =>
+  Effect.tryPromise({
+    try: () =>
+      readFile(resolve(SESSIONS_DIR, `${threadId}.json`), 'utf-8').then(
+        data => JSON.parse(data) as SessionMapping,
+      ),
+    catch: () => null as SessionMapping | null,
   })
 
-  try {
-    await session.prompt(prompt)
-  } finally {
-    unsub()
-  }
+const saveMapping = (threadId: string, mapping: SessionMapping) =>
+  Effect.tryPromise({
+    try: () =>
+      mkdir(SESSIONS_DIR, { recursive: true }).then(() =>
+        writeFile(
+          resolve(SESSIONS_DIR, `${threadId}.json`),
+          JSON.stringify(mapping, null, 2),
+          'utf-8',
+        ),
+      ),
+    catch: () => {},
+  })
 
-  return response
-}
+const getOrCreateSession = (threadId: string, channel: Message['channel']) =>
+  Effect.gen(function* () {
+    const store = yield* SessionStore
+    const sessions = yield* Ref.get(store)
+    const existing = sessions.get(threadId)
+    if (existing) return existing
 
-async function buildPrompt(
-  text: string,
-  attachments: Attachment[],
-): Promise<string> {
-  let prompt = text
-  for (const att of attachments) {
-    if (!att.size || att.size > 100_000) {
-      prompt += `\n\n[Skipped attachment: ${att.name} (${att.contentType ?? 'unknown type'}, too large)]`
-      continue
+    const mapping = yield* loadMapping(threadId)
+    let session: AgentSession
+    let sessionManager: SessionManager
+
+    if (mapping) {
+      sessionManager = SessionManager.open(mapping.sessionFile)
+      const result = yield* Effect.tryPromise({
+        try: () =>
+          createAgentSession({
+            sessionManager,
+            cwd: CWD,
+            tools: createCodingTools(CWD),
+          }),
+        catch: e => new Error(String(e)),
+      })
+      session = result.session
+    } else {
+      sessionManager = SessionManager.create(CWD)
+      const result = yield* Effect.tryPromise({
+        try: () =>
+          createAgentSession({
+            sessionManager,
+            cwd: CWD,
+            tools: createCodingTools(CWD),
+          }),
+        catch: e => new Error(String(e)),
+      })
+      session = result.session
+
+      const sessionFile = sessionManager.getSessionFile()
+      if (sessionFile) {
+        yield* saveMapping(threadId, {
+          threadId,
+          sessionFile,
+          createdAt: new Date().toISOString(),
+        })
+      }
     }
-    try {
-      const resp = await fetch(att.url)
-      const content = await resp.text()
-      prompt += `\n\n--- ${att.name} ---\n\`\`\`\n${content}\n\`\`\``
-    } catch {
-      prompt += `\n\n[Could not read attachment: ${att.name}]`
-    }
-  }
-  return prompt
-}
 
-async function processQueue(
+    const queue = yield* Queue.unbounded<{
+      text: string
+      attachments: Attachment[]
+    }>()
+    const fiber = yield* Effect.fork(
+      processQueue(threadId, channel, session, queue),
+    )
+    const entry: SessionEntry = { session, sessionManager, queue, fiber }
+    yield* Ref.update(store, m => new Map(m).set(threadId, entry))
+    return entry
+  })
+
+// ─── Message processing ──────────────────────────────────────────────────────
+
+const collectPiResponse = (session: AgentSession, prompt: string) =>
+  Effect.async<string>(resume => {
+    let response = ''
+    const unsub = session.subscribe(event => {
+      if (
+        event.type === 'message_update' &&
+        event.assistantMessageEvent.type === 'text_delta'
+      ) {
+        response += event.assistantMessageEvent.delta
+      }
+    })
+
+    session
+      .prompt(prompt)
+      .then(() => {
+        unsub()
+        resume(Effect.succeed(response))
+      })
+      .catch(e => {
+        unsub()
+        resume(
+          Effect.succeed(
+            `❌ Error: ${e instanceof Error ? e.message : String(e)}`,
+          ),
+        )
+      })
+  })
+
+const buildPrompt = (text: string, attachments: Attachment[]) =>
+  Effect.gen(function* () {
+    let prompt = text
+    for (const att of attachments) {
+      if (!att.size || att.size > 100_000) {
+        prompt += `\n\n[Skipped attachment: ${att.name} (${att.contentType ?? 'unknown type'}, too large)]`
+        continue
+      }
+      const content = yield* Effect.tryPromise({
+        try: () => fetch(att.url).then(r => r.text()),
+        catch: () => null as string | null,
+      })
+      if (content) {
+        prompt += `\n\n--- ${att.name} ---\n\`\`\`\n${content}\n\`\`\``
+      } else {
+        prompt += `\n\n[Could not read attachment: ${att.name}]`
+      }
+    }
+    return prompt
+  })
+
+const processQueue = (
   threadId: string,
   channel: Message['channel'],
-): Promise<void> {
-  const entry = sessions.get(threadId)
-  if (!entry || entry.busy) return
+  session: AgentSession,
+  queue: Queue.Queue<{ text: string; attachments: Attachment[] }>,
+) =>
+  Effect.gen(function* () {
+    while (true) {
+      const item = yield* Queue.take(queue)
 
-  while (entry.queue.length > 0) {
-    const { text, attachments } = entry.queue.shift()!
-    entry.busy = true
-    try {
       if ('sendTyping' in channel) {
-        await (channel as { sendTyping(): Promise<void> }).sendTyping()
+        yield* Effect.tryPromise({
+          try: () => (channel as { sendTyping(): Promise<void> }).sendTyping(),
+          catch: () => {},
+        })
       }
-      const prompt = await buildPrompt(text, attachments)
-      const response = await collectPiResponse(entry.session, prompt)
-      const send = channel as { send(content: string): Promise<unknown> }
-      await send.send(response || '(no response)')
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error'
-      try {
-        await (channel as { send(content: string): Promise<unknown> }).send(
-          `❌ Error: ${msg}`,
-        )
-      } catch {
-        // Channel might be unavailable
-      }
-    } finally {
-      entry.busy = false
+
+      const prompt = yield* buildPrompt(item.text, item.attachments)
+      const response = yield* collectPiResponse(session, prompt)
+
+      yield* Effect.tryPromise({
+        try: () =>
+          (channel as { send(content: string): Promise<unknown> }).send(
+            response || '(no response)',
+          ),
+        catch: () => {},
+      })
     }
-  }
-}
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.MessageContent,
-  ],
-})
-
-client.on(Events.ClientReady, async () => {
-  console.log(`🤖 Logged in as ${client.user?.tag ?? 'unknown'}`)
-
-  const stopCommand = new SlashCommandBuilder()
-    .setName('stop')
-    .setDescription('현재 실행 중인 Pi 작업을 중단합니다')
-
-  await client.application?.commands.set([stopCommand])
-  console.log('📝 Slash commands registered')
-})
-
-client.on(Events.MessageCreate, async (message: Message) => {
-  if (message.author.bot) return
-
-  const threadId = message.channelId
-  const isMention = client.user ? message.mentions.has(client.user.id) : false
-  const isTrackedThread = sessions.has(threadId)
-
-  if (!isMention && !isTrackedThread) return
-
-  const content = message.content
-    .replace(/<@!\d+>/g, '')
-    .replace(/<@\d+>/g, '')
-    .trim()
-  if (!content && message.attachments.size === 0) return
-
-  const entry = await getOrCreateSession(threadId)
-
-  entry.queue.push({
-    text: content,
-    attachments: [...message.attachments.values()],
   })
 
-  processQueue(threadId, message.channel).catch(console.error)
+// ─── Event handlers ──────────────────────────────────────────────────────────
+
+const handleMessageCreate = (message: Message) =>
+  Effect.gen(function* () {
+    const client = yield* DiscordClient
+    if (message.author.bot) return
+
+    const threadId = message.channelId
+    const isMention = client.user ? message.mentions.has(client.user.id) : false
+    const store = yield* SessionStore
+    const isTrackedThread = (yield* Ref.get(store)).has(threadId)
+
+    if (!isMention && !isTrackedThread) return
+
+    const content = message.content
+      .replace(/<@!\d+>/g, '')
+      .replace(/<@\d+>/g, '')
+      .trim()
+    if (!content && message.attachments.size === 0) return
+
+    const entry = yield* getOrCreateSession(threadId, message.channel)
+    yield* Queue.offer(entry.queue, {
+      text: content,
+      attachments: [...message.attachments.values()],
+    })
+  })
+
+const handleInteractionCreate = (interaction: unknown) =>
+  Effect.gen(function* () {
+    if (
+      typeof interaction !== 'object' ||
+      interaction === null ||
+      !('isChatInputCommand' in interaction) ||
+      typeof (interaction as any).isChatInputCommand !== 'function' ||
+      !(interaction as any).isChatInputCommand()
+    )
+      return
+    if ((interaction as any).commandName !== 'stop') return
+
+    const threadId = (interaction as any).channelId
+    const store = yield* SessionStore
+    const sessions = yield* Ref.get(store)
+    const entry = sessions.get(threadId)
+
+    if (entry) {
+      void entry.session.abort()
+      yield* Effect.tryPromise({
+        try: () => (interaction as any).reply('⏹ 실행을 중단했습니다.'),
+        catch: () => {},
+      })
+    } else {
+      yield* Effect.tryPromise({
+        try: () => (interaction as any).reply('실행 중인 작업이 없습니다.'),
+        catch: () => {},
+      })
+    }
+  })
+
+// ─── Layers ──────────────────────────────────────────────────────────────────
+
+const DiscordClientLive = Layer.sync(DiscordClient, () => {
+  const client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.GuildMessageTyping,
+      GatewayIntentBits.MessageContent,
+    ],
+  })
+  return client
 })
 
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return
-  if (interaction.commandName !== 'stop') return
+const SessionStoreLive = Layer.effect(
+  SessionStore,
+  Ref.make(new Map<string, SessionEntry>()),
+)
 
-  const threadId = interaction.channelId
-  const entry = sessions.get(threadId)
+// ─── Main ────────────────────────────────────────────────────────────────────
 
-  if (entry?.busy) {
-    void entry.session.abort()
-    await interaction.reply('⏹ 실행을 중단했습니다.')
-  } else {
-    await interaction.reply('실행 중인 작업이 없습니다.')
+const MainLayer = Layer.merge(DiscordClientLive, SessionStoreLive)
+const runtime = ManagedRuntime.make(MainLayer)
+
+const program = Effect.gen(function* () {
+  const client = yield* DiscordClient
+
+  client.on(Events.ClientReady, async () => {
+    console.log(`🤖 Logged in as ${client.user?.tag ?? 'unknown'}`)
+
+    const stopCommand = new SlashCommandBuilder()
+      .setName('stop')
+      .setDescription('현재 실행 중인 Pi 작업을 중단합니다')
+
+    await client.application?.commands.set([stopCommand])
+    console.log('📝 Slash commands registered')
+  })
+
+  client.on(Events.MessageCreate, message => {
+    runtime.runFork(handleMessageCreate(message))
+  })
+
+  client.on(Events.InteractionCreate, interaction => {
+    runtime.runFork(handleInteractionCreate(interaction))
+  })
+
+  const token = process.env.DISCORD_BOT_TOKEN
+  if (!token) {
+    console.error('❌ DISCORD_BOT_TOKEN environment variable is required')
+    yield* Effect.fail(new Error('DISCORD_BOT_TOKEN not set'))
   }
+
+  yield* Effect.tryPromise({
+    try: () => client.login(token!),
+    catch: e => new Error(`Login failed: ${String(e)}`),
+  })
 })
 
-const token = process.env.DISCORD_BOT_TOKEN
-if (!token) {
-  console.error('❌ DISCORD_BOT_TOKEN environment variable is required')
-  process.exit(1)
-}
-
-void client.login(token)
+await runtime.runPromise(program)
