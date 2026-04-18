@@ -23,8 +23,6 @@ import {
   RUNTIME_PREFIX,
 } from './config.js'
 
-// ─── Low-level client (supports AbortSignal via RequestInit) ───
-
 const headers: Record<string, string> = {
   'User-Agent': 'nailed-it-hindsight/0.1.0',
 }
@@ -36,16 +34,12 @@ const internalClient: Client = createClient(
   createConfig({ baseUrl: HINDSIGHT_BASE_URL, headers }),
 )
 
-// ─── High-level client (for bank management) ───
-
 export const client = new HindsightClient({
   baseUrl: HINDSIGHT_BASE_URL,
   apiKey: HINDSIGHT_API_KEY ?? undefined,
 })
 
 export { recallResponseToPromptString }
-
-// ─── Error logging ───
 
 let currentSessionId = 'unknown'
 
@@ -76,8 +70,6 @@ export function logError(
     // logging failure must not affect extension behavior
   }
 }
-
-// ─── Recall with timeout ───
 
 export async function recallWithTimeout(
   bankId: string,
@@ -116,8 +108,6 @@ export async function recallWithTimeout(
     signal?.removeEventListener('abort', onPiAbort)
   }
 }
-
-// ─── Retain with timeout ───
 
 export async function retainWithTimeout(
   bankId: string,
@@ -166,8 +156,6 @@ export async function retainWithTimeout(
     signal?.removeEventListener('abort', onPiAbort)
   }
 }
-
-// ─── Health check ───
 
 export async function healthCheck(): Promise<boolean> {
   try {

@@ -7,7 +7,6 @@ export function getBankId(): string {
 }
 
 export async function ensureBankExists(bankId: string): Promise<boolean> {
-  // Health check first
   const healthy = await healthCheck()
   if (!healthy) {
     logError('health_check_failed', 'Hindsight server unreachable')
@@ -15,12 +14,9 @@ export async function ensureBankExists(bankId: string): Promise<boolean> {
   }
 
   try {
-    // Try to get existing bank profile — if it exists, we're done
     await client.getBankProfile(bankId)
     return true
-  } catch {
-    // Bank doesn't exist, create it
-  }
+  } catch {}
 
   try {
     await client.createBank(bankId)

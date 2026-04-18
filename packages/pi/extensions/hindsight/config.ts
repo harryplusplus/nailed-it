@@ -1,32 +1,25 @@
-// ─── Hindsight Connection ───
 export const HINDSIGHT_BASE_URL =
   process.env.HINDSIGHT_API_URL ?? 'http://localhost:8888'
 export const HINDSIGHT_API_KEY = process.env.HINDSIGHT_API_KEY
 
-// ─── Recall ───
 export const RECALL_TIMEOUT_MS = 10_000
 export const RECALL_BUDGET = 'mid' as const
 export const RECALL_MAX_TOKENS = 4096
 export const RECALL_ENABLED = true
 
-// ─── Retain ───
 export const RETAIN_TIMEOUT_MS = 5_000
 export const RETAIN_ENABLED = true
 export const RETAIN_ASYNC = true
 
-// ─── Agent / Bank ───
 export const BANK_ID_PREFIX = 'pi-'
 export const DEFAULT_AGENT_ID = 'coding'
 export const RUNTIME_PREFIX = 'pi'
 
-// ─── Prompt Injection ───
 export const RECALL_PROMPT_HEADER = '<hindsight_recall>'
 export const RECALL_PROMPT_FOOTER = '</hindsight_recall>'
 
-// ─── Logging ───
 export const ERROR_LOG_DIR = `${process.env.HOME}/.nailed-it/logs`
 
-// ─── Agent Profiles ───
 export interface AgentProfile {
   retainMission: string
   observationsMission: string

@@ -1,8 +1,6 @@
 import { retainWithTimeout } from './client.js'
 import { RETAIN_ENABLED, RUNTIME_PREFIX } from './config.js'
 
-// ─── Message filtering ───
-
 function extractTextContent(content: unknown): string {
   if (typeof content === 'string') return content
   if (Array.isArray(content)) {
@@ -21,15 +19,11 @@ function isMeaningfulMessage(entry: any): boolean {
   const msg = entry.message
   if (!msg) return false
 
-  // Only user and assistant text messages
   if (msg.role !== 'user' && msg.role !== 'assistant') return false
 
-  // Must have text content (not just images, tool calls, thinking)
   const text = extractTextContent(msg.content)
   return text.trim().length > 0
 }
-
-// ─── Conversation formatting ───
 
 function formatMessage(entry: any): string {
   const msg = entry.message
@@ -48,8 +42,6 @@ export function filterAndFormatMessages(entries: any[]): string {
 
   return meaningful.map(formatMessage).join('\n')
 }
-
-// ─── Retain ───
 
 export async function retainConversation(
   bankId: string,

@@ -12,8 +12,6 @@ interface SessionState {
 }
 
 export default async function (pi: ExtensionAPI) {
-  // State scoped to this extension instance.
-  // Each session_start resets it, so session transitions don't leak state.
   const state: SessionState = {
     bankId: '',
     recallEnabled: RECALL_ENABLED,
@@ -24,7 +22,6 @@ export default async function (pi: ExtensionAPI) {
     const sessionId = ctx.sessionManager.getSessionId()
     setSessionId(sessionId)
 
-    // Reset state for new session
     state.bankId = getBankId()
     state.recallEnabled = RECALL_ENABLED
     state.retainEnabled = RETAIN_ENABLED
