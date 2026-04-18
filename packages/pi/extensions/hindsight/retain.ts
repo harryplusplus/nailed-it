@@ -1,6 +1,6 @@
 import type { HindsightClients } from './client.js'
 import { retainWithTimeout } from './client.js'
-import { RETAIN_ENABLED, RUNTIME_PREFIX } from './config.js'
+import { RUNTIME_PREFIX } from './config.js'
 
 function extractTextContent(content: unknown): string {
   if (typeof content === 'string') return content
@@ -51,8 +51,6 @@ export async function retainConversation(
   entries: any[],
   signal?: AbortSignal,
 ): Promise<void> {
-  if (!RETAIN_ENABLED) return
-
   const formatted = filterAndFormatMessages(entries)
   if (!formatted) return
 

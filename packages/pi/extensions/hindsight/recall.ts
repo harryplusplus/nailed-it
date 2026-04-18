@@ -1,10 +1,6 @@
 import type { HindsightClients } from './client.js'
 import { recallWithTimeout, recallResponseToPromptString } from './client.js'
-import {
-  RECALL_ENABLED,
-  RECALL_PROMPT_HEADER,
-  RECALL_PROMPT_FOOTER,
-} from './config.js'
+import { RECALL_PROMPT_HEADER, RECALL_PROMPT_FOOTER } from './config.js'
 
 export async function recallAndInject(
   clients: HindsightClients,
@@ -13,8 +9,6 @@ export async function recallAndInject(
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<{ systemPrompt: string } | undefined> {
-  if (!RECALL_ENABLED) return undefined
-
   const response = await recallWithTimeout(
     clients,
     bankId,

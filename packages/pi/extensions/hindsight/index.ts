@@ -4,7 +4,6 @@ import { createClients } from './client.js'
 import { getBankId, ensureBankExists, configureBankMissions } from './bank.js'
 import { recallAndInject } from './recall.js'
 import { retainConversation } from './retain.js'
-import { RECALL_ENABLED, RETAIN_ENABLED } from './config.js'
 
 interface SessionState {
   sessionId: string
@@ -22,8 +21,8 @@ function initState(): SessionState {
     sessionId: '',
     bankId: getBankId(),
     clients: createClients(baseUrl, apiKey),
-    recallEnabled: RECALL_ENABLED,
-    retainEnabled: RETAIN_ENABLED,
+    recallEnabled: true,
+    retainEnabled: true,
   }
 }
 
@@ -33,8 +32,8 @@ export default async function (pi: ExtensionAPI) {
   pi.on('session_start', async (_event, ctx) => {
     state.sessionId = ctx.sessionManager.getSessionId()
     state.bankId = getBankId()
-    state.recallEnabled = RECALL_ENABLED
-    state.retainEnabled = RETAIN_ENABLED
+    state.recallEnabled = true
+    state.retainEnabled = true
 
     const bankOk = await ensureBankExists(
       state.clients,

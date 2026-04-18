@@ -1,10 +1,7 @@
 export const RECALL_TIMEOUT_MS = 10_000
 export const RECALL_BUDGET = 'mid' as const
 export const RECALL_MAX_TOKENS = 4096
-export const RECALL_ENABLED = true
-
 export const RETAIN_TIMEOUT_MS = 5_000
-export const RETAIN_ENABLED = true
 export const RETAIN_ASYNC = true
 
 export const BANK_ID_PREFIX = 'pi-'
