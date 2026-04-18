@@ -6,10 +6,13 @@ export function getBankId(): string {
   return `${BANK_ID_PREFIX}${agentId}`
 }
 
-export async function ensureBankExists(bankId: string): Promise<boolean> {
+export async function ensureBankExists(
+  bankId: string,
+  sessionId: string,
+): Promise<boolean> {
   const healthy = await healthCheck()
   if (!healthy) {
-    logError('health_check_failed', 'Hindsight server unreachable')
+    logError('health_check_failed', 'Hindsight server unreachable', sessionId)
     return false
   }
 
@@ -22,12 +25,15 @@ export async function ensureBankExists(bankId: string): Promise<boolean> {
     await client.createBank(bankId)
     return true
   } catch (e) {
-    logError('bank_create_failed', e, { bankId })
+    logError('bank_create_failed', e, sessionId, { bankId })
     return false
   }
 }
 
-export async function configureBankMissions(bankId: string): Promise<void> {
+export async function configureBankMissions(
+  bankId: string,
+  sessionId: string,
+): Promise<void> {
   const agentId = process.env.NI_AGENT_ID ?? DEFAULT_AGENT_ID
   const profile = AGENT_PROFILES[agentId]
   if (!profile) return
@@ -38,6 +44,6 @@ export async function configureBankMissions(bankId: string): Promise<void> {
       observationsMission: profile.observationsMission,
     })
   } catch (e) {
-    logError('bank_config_failed', e, { bankId, agentId })
+    logError('bank_config_failed', e, sessionId, { bankId, agentId })
   }
 }

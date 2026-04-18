@@ -60,6 +60,7 @@ export async function retainConversation(
     bankId,
     formatted,
     { documentId, context: 'coding session' },
+    sessionId,
     signal,
   )
 }

@@ -41,15 +41,10 @@ export const client = new HindsightClient({
 
 export { recallResponseToPromptString }
 
-let currentSessionId = 'unknown'
-
-export function setSessionId(id: string) {
-  currentSessionId = id
-}
-
 export function logError(
   event: string,
   error: unknown,
+  sessionId: string,
   context?: Record<string, unknown>,
 ) {
   try {
@@ -61,10 +56,10 @@ export function logError(
         error instanceof Error
           ? { message: error.message, name: error.name }
           : String(error),
-      sessionId: currentSessionId,
+      sessionId,
       ...context,
     })
-    const logPath = `${ERROR_LOG_DIR}/${RUNTIME_PREFIX}-session-${currentSessionId}.jsonl`
+    const logPath = `${ERROR_LOG_DIR}/${RUNTIME_PREFIX}-session-${sessionId}.jsonl`
     appendFileSync(logPath, entry + '\n')
   } catch {
     // logging failure must not affect extension behavior
@@ -74,6 +69,7 @@ export function logError(
 export async function recallWithTimeout(
   bankId: string,
   query: string,
+  sessionId: string,
   signal?: AbortSignal,
 ): Promise<RecallResponse | null> {
   const controller = new AbortController()
@@ -91,16 +87,16 @@ export async function recallWithTimeout(
     })
 
     if (!response.data) {
-      logError('recall_empty', 'No data in response')
+      logError('recall_empty', 'No data in response', sessionId)
       return null
     }
 
     return response.data as RecallResponse
   } catch (e) {
     if (controller.signal.aborted && !signal?.aborted) {
-      logError('recall_timeout', e, { timeoutMs: RECALL_TIMEOUT_MS })
+      logError('recall_timeout', e, sessionId, { timeoutMs: RECALL_TIMEOUT_MS })
     } else {
-      logError('recall_error', e)
+      logError('recall_error', e, sessionId)
     }
     return null
   } finally {
@@ -113,6 +109,7 @@ export async function retainWithTimeout(
   bankId: string,
   content: string,
   options: { documentId: string; context?: string },
+  sessionId: string,
   signal?: AbortSignal,
 ): Promise<RetainResponse | null> {
   const controller = new AbortController()
@@ -139,16 +136,16 @@ export async function retainWithTimeout(
     })
 
     if (!response.data) {
-      logError('retain_empty', 'No data in response')
+      logError('retain_empty', 'No data in response', sessionId)
       return null
     }
 
     return response.data as RetainResponse
   } catch (e) {
     if (controller.signal.aborted && !signal?.aborted) {
-      logError('retain_timeout', e, { timeoutMs: RETAIN_TIMEOUT_MS })
+      logError('retain_timeout', e, sessionId, { timeoutMs: RETAIN_TIMEOUT_MS })
     } else {
-      logError('retain_error', e)
+      logError('retain_error', e, sessionId)
     }
     return null
   } finally {
