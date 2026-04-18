@@ -11,6 +11,7 @@ export default async function (pi: ExtensionAPI) {
       )
     }
   })
+
   pi.on('before_agent_start', async event => {
     return {
       systemPrompt: event.systemPrompt + '\n\nUse `rg` instead of `grep`.',
