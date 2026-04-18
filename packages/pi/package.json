@@ -19,10 +19,7 @@
       "extensions/notify.ts",
       "extensions/rg.ts",
       "extensions/fd.ts",
-      "extensions/hindsight/index.ts"
+      "extensions/elapsed-time.ts"
     ]
-  },
-  "dependencies": {
-    "@vectorize-io/hindsight-client": "^0.5.3"
   }
 }
