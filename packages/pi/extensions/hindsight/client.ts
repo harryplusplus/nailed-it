@@ -1,4 +1,9 @@
 import { appendFileSync, mkdirSync } from 'node:fs'
+import type {
+  RecallResponse,
+  RetainResponse,
+} from '@vectorize-io/hindsight-client'
+import { recallResponseToPromptString } from '@vectorize-io/hindsight-client'
 import {
   RECALL_TIMEOUT_MS,
   RECALL_BUDGET,
@@ -8,6 +13,9 @@ import {
   ERROR_LOG_DIR,
   RUNTIME_PREFIX,
 } from './config.js'
+
+export type { RecallResponse, RetainResponse }
+export { recallResponseToPromptString }
 
 export interface HindsightApi {
   baseUrl: string
@@ -101,22 +109,6 @@ export async function healthCheck(
   }
 }
 
-export interface RecallResult {
-  text: string
-  type: string
-  id: string
-  context?: string
-  entities?: string[]
-  occurred_start?: string
-  occurred_end?: string
-}
-
-export interface RecallResponse {
-  results: RecallResult[]
-  entities?: Record<string, unknown>
-  trace?: Record<string, unknown>
-}
-
 export async function recallMemories(
   api: HindsightApi,
   bankId: string,
@@ -153,14 +145,6 @@ export async function recallMemories(
   } finally {
     cleanup()
   }
-}
-
-export interface RetainResponse {
-  success: boolean
-  bank_id: string
-  items_count: number
-  async: boolean
-  operation_id?: string
 }
 
 export async function retainMemories(

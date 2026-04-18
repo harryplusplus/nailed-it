@@ -21,5 +21,8 @@
       "extensions/fd.ts",
       "extensions/hindsight/index.ts"
     ]
+  },
+  "dependencies": {
+    "@vectorize-io/hindsight-client": "^0.5.3"
   }
 }
