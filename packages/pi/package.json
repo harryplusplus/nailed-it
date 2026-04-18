@@ -16,7 +16,9 @@
       "extensions/temperature-zero.ts",
       "extensions/web-search.ts",
       "extensions/web-fetch.ts",
-      "extensions/notify.ts"
+      "extensions/notify.ts",
+      "extensions/rg.ts",
+      "extensions/fd.ts"
     ]
   }
 }
