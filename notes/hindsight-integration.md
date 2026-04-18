@@ -121,9 +121,7 @@ const timeoutId = setTimeout(() => controller.abort(), RECALL_TIMEOUT_MS)
 
 // Pi의 cancel signal도 연동
 const onPiAbort = () => controller.abort()
-if (ctx.signal) {
-  ctx.signal.addEventListener('abort', onPiAbort)
-}
+ctx.signal?.addEventListener('abort', onPiAbort)
 
 try {
   const response = await sdk.recallMemories({
@@ -135,9 +133,7 @@ try {
   // ...
 } finally {
   clearTimeout(timeoutId)
-  if (ctx.signal) {
-    ctx.signal.removeEventListener('abort', onPiAbort)
-  }
+  ctx.signal?.removeEventListener('abort', onPiAbort)
 }
 ```
 
