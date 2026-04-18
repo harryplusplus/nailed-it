@@ -1,10 +1,11 @@
-import { $ as $base } from 'execa'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import os from 'node:os'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 
-const $ = $base({ shell: true })
+const execFileAsync = promisify(execFile)
 
 const repoRoot = path.resolve(fileURLToPath(import.meta.url), '../..')
 
@@ -50,8 +51,8 @@ async function setupSkills() {
   console.log('Removing broken skill symlinks...')
   await removeBrokenSymlinks(globalSkillsDir)
 
-  console.log('Linking skills from repository...')
-  await linkSkills()
+  // console.log('Linking skills from repository...')
+  // await linkSkills()
 }
 
 async function linkSkills() {
@@ -81,13 +82,13 @@ async function setupPi() {
   await createDotLocalPi()
 
   console.log('Checking pi command...')
-  await $`pi --version`
+  await execFileAsync('pi', ['--version'])
 
   console.log('Installing Pi package...')
-  await $`pi install ${repoPackagePiDir}`
+  await execFileAsync('pi', ['install', repoPackagePiDir])
 
   console.log('Checking OLLAMA_API_KEY environment variable...')
-  await $`[ -n "$OLLAMA_API_KEY" ]`
+  await execFileAsync('sh', ['-c', '[ -n "$OLLAMA_API_KEY" ]'])
 }
 
 async function copyPiConfig(fileName: string) {
@@ -97,14 +98,17 @@ async function copyPiConfig(fileName: string) {
 async function setupOpencode() {
   console.log('Setting up Opencode...')
 
+  console.log('Removing broken plugin symlinks...')
+  await removeBrokenSymlinks(globalOpencodePluginsDir)
+
   console.log('Copying Opencode configuration files...')
   await copyOpencodeConfig('opencode.jsonc')
 
   console.log('Linking Opencode plugins...')
-  await linkOpencodePlugin('temperature.ts')
+  await linkOpencodePlugin('temperature-zero.ts')
 
   console.log('Checking opencode command...')
-  await $`opencode --version`
+  await execFileAsync('opencode', ['--version'])
 }
 
 async function copyOpencodeConfig(fileName: string) {
