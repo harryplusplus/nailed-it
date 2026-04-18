@@ -63,12 +63,14 @@ const recallQuery = [
 
 **주입 위치:** `systemPrompt` 끝에 섹션 추가
 
-```
-## Recalled Memories
+```xml
+<hindsight_recall>
 {recall 결과를 recallResponseToPromptString()으로 포맷}
+</hindsight_recall>
 ```
 
 - systemPrompt에 넣는 이유: 기억은 "배경 지식"이지 "사용자 요청"이 아님. userMessage에 넣으면 LLM이 기억과 실제 질문을 혼동할 수 있음. systemPrompt는 지시/컨텍스트 영역이므로 의미론적으로 분리됨.
+- XML 태그(`<hindsight_recall>`)로 래핑 → 세션 압축(compaction) 시 블록 식별/관리 가능. 태그 유무로 기억 블록 보존/요약/제거 전략 적용.
 - recall은 매 사용자 프롬프트(1회 `before_agent_start`)마다 1회 실행. 프롬프트 내 여러 턴에서는 동일한 기억 컨텍스트를 재사용.
 - recall 결과가 없으면 섹션 자체를 생략 (프롬프트 낭비 방지).
 
@@ -142,7 +144,7 @@ try {
 
 **타임아웃 시 동작:**
 
-- recall: 빈 결과 반환 (프롬프트에 "Recalled Memories" 섹션 생략) → 에이전트는 기억 없이 계속 진행.
+- recall: 빈 결과 반환 (`<hindsight_recall>` 블록 자체 생략) → 에이전트는 기억 없이 계속 진행.
 - retain: 조용히 실패 (async 모드에서는 HTTP 응답만 타임아웃, 팩트 추출은 서버에서 비동기 진행) → 에이전트 동작에 영향 없음.
 
 ---
@@ -188,7 +190,8 @@ const AGENT_PROFILES: Record<string, AgentProfile> = {
 }
 
 // ─── Prompt Injection ───
-const RECALL_PROMPT_HEADER = '## Recalled Memories'
+const RECALL_PROMPT_HEADER = '<hindsight_recall>'
+const RECALL_PROMPT_FOOTER = '</hindsight_recall>'
 ```
 
 **Mission 종류와 현재 설계에서의 효과:**
@@ -296,7 +299,13 @@ pi.on('before_agent_start', async (event, ctx) => {
   const memorySection = formatRecallForPrompt(recalled)
   return {
     systemPrompt:
-      event.systemPrompt + '\n\n' + RECALL_PROMPT_HEADER + '\n' + memorySection,
+      event.systemPrompt +
+        '\n\n' +
+        RECALL_PROMPT_HEADER +
+        '\n' +
+        memorySection +
+        '\n' +
+        RECALL_PROMPT_FOOTER,
   }
 })
 ```
@@ -356,7 +365,7 @@ pi.on('agent_end', async (event, ctx) => {
 - [ ] `config.ts` — 상수 정의 + 환경변수 로드
 - [ ] `client.ts` — 저수준 SDK 래퍼 (AbortController 타임아웃, 에러 핸들링)
 - [ ] `bank.ts` — bank ID 생성, createBank (idempotent), updateBankConfig (mission 설정)
-- [ ] `recall.ts` — recall 쿼리 구성, 타임아웃 래핑, `recallResponseToPromptString` 포맷
+- [ ] `recall.ts` — recall 쿼리 구성, 타임아웃 래핑, `recallResponseToPromptString` 포맷, XML 태그 래핑
 - [ ] `retain.ts` — 메시지 필터링, 대화 포맷, upsert retain
 - [ ] `index.ts` — Pi 이벤트 훅 연결
 - [ ] `package.json` — 의존성 추가
