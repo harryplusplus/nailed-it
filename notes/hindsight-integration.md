@@ -65,7 +65,8 @@ const recallQuery = [
 {recall 결과를 recallResponseToPromptString()으로 포맷}
 ```
 
-- systemPrompt에 넣는 이유: 모든 턴에서 일관되게 참조 가능, 사용자 프롬프트에 넣으면 매 턴마다 반복 노출.
+- systemPrompt에 넣는 이유: 기억은 "배경 지식"이지 "사용자 요청"이 아님. userMessage에 넣으면 LLM이 기억과 실제 질문을 혼동할 수 있음. systemPrompt는 지시/컨텍스트 영역이므로 의미론적으로 분리됨.
+- recall은 매 사용자 프롬프트(1회 `before_agent_start`)마다 1회 실행. 프롬프트 내 여러 턴에서는 동일한 기억 컨텍스트를 재사용.
 - recall 결과가 없으면 섹션 자체를 생략 (프롬프트 낭비 방지).
 
 ### 2.3 Retain: 어시스턴트 응답 완료 시
