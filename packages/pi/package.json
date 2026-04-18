@@ -5,6 +5,9 @@
     "pi-package"
   ],
   "type": "module",
+  "dependencies": {
+    "@vectorize-io/hindsight-client": "^0.5.3"
+  },
   "peerDependencies": {
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",
@@ -18,7 +21,8 @@
       "extensions/web-fetch.ts",
       "extensions/notify.ts",
       "extensions/rg.ts",
-      "extensions/fd.ts"
+      "extensions/fd.ts",
+      "extensions/hindsight/index.ts"
     ]
   }
 }
