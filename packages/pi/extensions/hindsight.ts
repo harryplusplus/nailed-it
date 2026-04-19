@@ -65,7 +65,7 @@ const DEFAULTS: HindsightConfig = {
   autoRecall: true,
   autoRetain: true,
   recallBudget: 'mid',
-  recallMaxTokens: 2048,
+  recallMaxTokens: 4096,
   recallTypes: ['world', 'experience'],
   recallInjectionPosition: 'append',
   retainEveryNTurns: 1,
