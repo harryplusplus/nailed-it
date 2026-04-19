@@ -8,6 +8,12 @@
   "dependencies": {
     "@vectorize-io/hindsight-client": "^0.5.3"
   },
+  "devDependencies": {
+    "@mariozechner/pi-ai": "^0.67.68",
+    "@mariozechner/pi-coding-agent": "^0.67.68",
+    "@mariozechner/pi-tui": "^0.67.68",
+    "@sinclair/typebox": "^0.34.49"
+  },
   "peerDependencies": {
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",

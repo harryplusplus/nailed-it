@@ -7,115 +7,102 @@ import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 
-const repoRoot = path.resolve(fileURLToPath(import.meta.url), '../..')
+class Setup {
+  paths = createPaths()
 
-const repoPiAgentDir = path.join(repoRoot, 'assets', 'pi', 'agent')
-const repoPackagePiDir = path.join(repoRoot, 'packages', 'pi')
-const globalPiAgentDir = path.join(os.homedir(), '.pi', 'agent')
-const repoPiPath = path.join(repoRoot, 'node_modules', '.bin', 'pi')
-const dotLocalPiPath = path.join(os.homedir(), '.local', 'bin', 'pi')
+  async setup() {
+    console.log('Checking repository root...')
+    await checkRepoRoot(this.paths.repo.root)
+    await this.setupPi()
+    await this.setupOpencode()
+    console.log('Setup complete!')
+  }
 
-const repoOpencodeConfigDir = path.join(
-  repoRoot,
-  'assets',
-  'config',
-  'opencode',
-)
-const repoOpencodePluginsDir = path.join(
-  repoRoot,
-  'packages',
-  'opencode',
-  'plugins',
-)
-const globalOpencodeConfigDir = path.join(os.homedir(), '.config', 'opencode')
-const globalOpencodePluginsDir = path.join(globalOpencodeConfigDir, 'plugins')
+  async setupPi() {
+    console.log('Setting up Pi...')
 
-const repoSkillsDir = path.join(repoRoot, 'skills')
-const globalSkillsDir = path.join(os.homedir(), '.agents', 'skills')
+    console.log('Copying Pi agent configuration files...')
+    await this.copyPiConfig('models.json')
+    await this.copyPiConfig('settings.json')
 
-await main()
+    console.log('Checking pi command...')
+    await execFileAsync('pi', ['--version'])
 
-async function main() {
-  console.log('Checking repository root...')
-  await checkRepoRoot()
-  await setupPi()
-  await setupOpencode()
-  await setupSkills()
-  console.log('Setup complete!')
-}
+    console.log('Installing Pi package...')
+    await execFileAsync('pi', ['install', this.paths.repo.pi.packageDir])
 
-async function setupSkills() {
-  console.log('Setting up skills...')
-  await fs.mkdir(globalSkillsDir, { recursive: true })
+    console.log('Checking OLLAMA_API_KEY environment variable...')
+    await execFileAsync('sh', ['-c', '[ -n "$OLLAMA_API_KEY" ]'])
+  }
 
-  console.log('Removing broken skill symlinks...')
-  await removeBrokenSymlinks(globalSkillsDir)
+  async setupOpencode() {
+    console.log('Setting up Opencode...')
 
-  // console.log('Linking skills from repository...')
-  // await linkSkills()
-}
+    console.log('Removing broken plugin symlinks...')
+    await removeBrokenSymlinks(this.paths.global.opencode.pluginsDir)
 
-async function _linkSkills() {
-  const skillDirs = await fs.readdir(repoSkillsDir)
-  for (const dir of skillDirs) {
-    const src = path.join(repoSkillsDir, dir)
-    const dest = path.join(globalSkillsDir, dir)
-    const stat = await fs.lstat(dest).catch(() => null)
-    if (stat?.isSymbolicLink()) {
-      await fs.unlink(dest)
-    } else if (stat) {
-      await fs.rm(dest + '.bak').catch(() => {})
-      await fs.rename(dest, dest + '.bak')
-    }
-    await fs.symlink(src, dest)
+    console.log('Copying Opencode configuration files...')
+    await this.copyOpencodeConfig('opencode.jsonc')
+
+    console.log('Linking Opencode plugins...')
+    await this.linkOpencodePlugin('temperature-zero.ts')
+
+    console.log('Checking opencode command...')
+    await execFileAsync('opencode', ['--version'])
+  }
+
+  async copyPiConfig(fileName: string) {
+    await copyConfig(
+      this.paths.repo.pi.agentDir,
+      this.paths.global.pi.agentDir,
+      fileName,
+    )
+  }
+
+  async copyOpencodeConfig(fileName: string) {
+    await copyConfig(
+      this.paths.repo.opencode.configDir,
+      this.paths.global.opencode.configDir,
+      fileName,
+    )
+  }
+
+  async linkOpencodePlugin(fileName: string) {
+    await symlink(
+      this.paths.repo.opencode.pluginsDir,
+      this.paths.global.opencode.pluginsDir,
+      fileName,
+    )
   }
 }
 
-async function setupPi() {
-  console.log('Setting up Pi...')
+function createPaths() {
+  const repoRoot = path.resolve(fileURLToPath(import.meta.url), '../..')
+  const globalOpencodeConfigDir = path.join(os.homedir(), '.config', 'opencode')
 
-  console.log('Copying Pi agent configuration files...')
-  await copyPiConfig('models.json')
-  await copyPiConfig('settings.json')
-
-  console.log('Creating ~/.local/bin/pi script...')
-  await createDotLocalPi()
-
-  console.log('Checking pi command...')
-  await execFileAsync('pi', ['--version'])
-
-  console.log('Installing Pi package...')
-  await execFileAsync('pi', ['install', repoPackagePiDir])
-
-  console.log('Checking OLLAMA_API_KEY environment variable...')
-  await execFileAsync('sh', ['-c', '[ -n "$OLLAMA_API_KEY" ]'])
+  return {
+    repo: {
+      root: repoRoot,
+      pi: {
+        agentDir: path.join(repoRoot, 'assets', 'pi', 'agent'),
+        packageDir: path.join(repoRoot, 'packages', 'pi'),
+      },
+      opencode: {
+        configDir: path.join(repoRoot, 'assets', 'config', 'opencode'),
+        pluginsDir: path.join(repoRoot, 'packages', 'opencode', 'plugins'),
+      },
+    },
+    global: {
+      pi: { agentDir: path.join(os.homedir(), '.pi', 'agent') },
+      opencode: {
+        configDir: globalOpencodeConfigDir,
+        pluginsDir: path.join(globalOpencodeConfigDir, 'plugins'),
+      },
+    },
+  }
 }
 
-async function copyPiConfig(fileName: string) {
-  await copyConfig(repoPiAgentDir, globalPiAgentDir, fileName)
-}
-
-async function setupOpencode() {
-  console.log('Setting up Opencode...')
-
-  console.log('Removing broken plugin symlinks...')
-  await removeBrokenSymlinks(globalOpencodePluginsDir)
-
-  console.log('Copying Opencode configuration files...')
-  await copyOpencodeConfig('opencode.jsonc')
-
-  console.log('Linking Opencode plugins...')
-  await linkOpencodePlugin('temperature-zero.ts')
-
-  console.log('Checking opencode command...')
-  await execFileAsync('opencode', ['--version'])
-}
-
-async function copyOpencodeConfig(fileName: string) {
-  await copyConfig(repoOpencodeConfigDir, globalOpencodeConfigDir, fileName)
-}
-
-async function checkRepoRoot() {
+async function checkRepoRoot(repoRoot: string) {
   const hasPackageJson = await fs
     .stat(path.join(repoRoot, 'package.json'))
     .then(s => s.isFile())
@@ -126,41 +113,13 @@ async function checkRepoRoot() {
 }
 
 async function copyConfig(srcDir: string, destDir: string, fileName: string) {
-  const src = path.join(srcDir, fileName)
-  const dest = path.join(destDir, fileName)
-  await fs.mkdir(destDir, { recursive: true })
-  const hasDest = await fs
-    .stat(dest)
-    .then(s => s.isFile())
-    .catch(() => false)
-  if (hasDest) {
-    await fs.rm(dest + '.bak').catch(() => {})
-    await fs.rename(dest, dest + '.bak')
-  }
+  const absSrcDir = path.resolve(srcDir)
+  const absDestDir = path.resolve(destDir)
+  const src = path.join(absSrcDir, fileName)
+  const dest = path.join(absDestDir, fileName)
+  await fs.mkdir(absDestDir, { recursive: true })
+  await prepareDest(dest)
   await fs.copyFile(src, dest)
-}
-
-async function createDotLocalPi() {
-  const wrapperScript = `#!/bin/sh
-exec ${repoPiPath} "$@"
-`
-  await fs.writeFile(dotLocalPiPath, wrapperScript)
-  await fs.chmod(dotLocalPiPath, 0o755)
-}
-
-async function linkOpencodePlugin(fileName: string) {
-  const src = path.join(repoOpencodePluginsDir, fileName)
-  const dest = path.join(globalOpencodePluginsDir, fileName)
-  await fs.mkdir(globalOpencodePluginsDir, { recursive: true })
-  const stat = await fs.lstat(dest).catch(() => null)
-  if (stat?.isSymbolicLink()) {
-    await fs.unlink(dest)
-  } else if (stat) {
-    await fs.rm(dest + '.bak').catch(() => {})
-    await fs.rename(dest, dest + '.bak')
-  }
-  await fs.access(src, fs.constants.R_OK)
-  await fs.symlink(src, dest)
 }
 
 async function removeBrokenSymlinks(dir: string) {
@@ -170,12 +129,43 @@ async function removeBrokenSymlinks(dir: string) {
       .filter(e => e.isSymbolicLink())
       .map(async e => {
         const fullPath = path.join(dir, e.name)
-        const target = path.resolve(dir, await fs.readlink(fullPath))
         try {
-          await fs.lstat(target)
+          await fs.stat(fullPath)
         } catch {
           await fs.unlink(fullPath)
         }
       }),
   )
 }
+
+async function symlink(srcDir: string, destDir: string, fileName: string) {
+  const absSrcDir = path.resolve(srcDir)
+  const absDestDir = path.resolve(destDir)
+  const src = path.join(absSrcDir, fileName)
+  const dest = path.join(absDestDir, fileName)
+  await fs.mkdir(absDestDir, { recursive: true })
+  await prepareDest(dest)
+  const relSrc = path.relative(absDestDir, src)
+  await fs.symlink(relSrc, dest)
+}
+
+async function prepareDest(dest: string) {
+  const stat = await fs.lstat(dest).catch(() => null)
+  if (stat?.isSymbolicLink()) {
+    await fs.unlink(dest)
+  } else if (stat?.isFile()) {
+    await fs.rm(dest + '.bak').catch(() => {})
+    await fs.rename(dest, dest + '.bak')
+  } else if (stat) {
+    throw new Error(
+      `Cannot write to ${dest}: destination exists and is not a file or symlink.`,
+    )
+  }
+}
+
+async function main() {
+  const setup = new Setup()
+  await setup.setup()
+}
+
+await main()
