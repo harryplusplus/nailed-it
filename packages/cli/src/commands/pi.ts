@@ -25,7 +25,7 @@ export const pi = Command.make('pi', {}, () =>
 
     yield* Console.log('Checking OLLAMA_API_KEY environment variable...')
     yield* exec(
-      ChildProcess.make`sh -c '[ -n "$OLLAMA_API_KEY" ]'`,
+      ChildProcess.make({ shell: true })`sh -c '[ -n "$OLLAMA_API_KEY" ]'`,
       'OLLAMA_API_KEY is not set',
     )
 

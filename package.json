@@ -9,7 +9,8 @@
   },
   "type": "module",
   "scripts": {
-    "setup": "node scripts/setup.ts"
+    "setup": "node scripts/setup.ts",
+    "cli": "pnpm run --filter @nailed-it/cli cli"
   },
   "devDependencies": {
     "@effect/language-service": "^0.85.1",

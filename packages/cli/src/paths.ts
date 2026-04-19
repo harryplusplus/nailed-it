@@ -8,6 +8,7 @@ import {
   Option,
 } from 'effect'
 import os from 'node:os'
+import fs from 'node:fs/promises'
 
 export class InvalidPathError extends Schema.TaggedErrorClass<InvalidPathError>()(
   'InvalidPathError',
@@ -75,11 +76,11 @@ const prepareDest = (dest: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
 
-    const info = yield* Effect.option(fs.stat(dest))
+    const info = yield* lstat(dest).pipe(Effect.option)
     if (Option.isSome(info)) {
-      if (info.value.type === 'SymbolicLink') {
+      if (info.value.isSymbolicLink()) {
         yield* fs.remove(dest)
-      } else if (info.value.type === 'File') {
+      } else if (info.value.isFile()) {
         yield* fs.remove(`${dest}.bak`).pipe(Effect.ignore)
         yield* fs.rename(dest, `${dest}.bak`)
       } else {
@@ -87,6 +88,46 @@ const prepareDest = (dest: string) =>
           message: `Expected ${dest} to be a file or symlink`,
           path: dest,
         })
+      }
+    }
+  })
+
+export const lstat = (path: string) =>
+  Effect.tryPromise({
+    try: () => fs.lstat(path),
+    catch: () => new InvalidPathError({ message: `Failed to stat path`, path }),
+  })
+
+export const linkFile = (srcDir: string, destDir: string, fileName: string) =>
+  Effect.gen(function* () {
+    const path = yield* Path.Path
+    const fs = yield* FileSystem.FileSystem
+
+    const src = path.resolve(srcDir, fileName)
+    const absDestDir = path.resolve(destDir)
+    yield* fs.makeDirectory(absDestDir, { recursive: true })
+    const dest = path.join(absDestDir, fileName)
+    yield* prepareDest(dest)
+    const relSrc = path.relative(absDestDir, src)
+    yield* fs.symlink(relSrc, dest)
+  })
+
+export const removeBrokenSymlinks = (dir: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem
+    const path = yield* Path.Path
+
+    const entries = yield* fs.readDirectory(dir)
+    for (const entry of entries) {
+      const stat = yield* lstat(entry).pipe(Effect.option)
+      if (Option.isSome(stat)) {
+        if (stat.value.isSymbolicLink()) {
+          const fullPath = path.join(dir, entry)
+          const stat = yield* fs.stat(fullPath).pipe(Effect.option)
+          if (Option.isNone(stat)) {
+            yield* fs.remove(fullPath)
+          }
+        }
       }
     }
   })

@@ -1,16 +1,24 @@
 import { Command } from 'effect/unstable/cli'
-import { Effect } from 'effect'
+import { Effect, Layer } from 'effect'
 import { NodeServices, NodeRuntime } from '@effect/platform-node'
 import { submodules } from './commands/submodules.ts'
 import { pi } from './commands/pi.ts'
 import { Paths } from './paths.ts'
+import { opencode } from './commands/opencode.ts'
 
-const mainLayer = Effect.provide(NodeServices.layer, Paths.layer)
-
-Command.make('ni').pipe(
-  Command.withSubcommands([submodules, pi]),
+const program = Command.make('cli').pipe(
+  Command.withSubcommands([submodules, pi, opencode]),
   Command.run({ version: '0.0.0' }),
-  Effect.scoped,
-  mainLayer,
-  NodeRuntime.runMain,
+)
+
+NodeRuntime.runMain(
+  program.pipe(
+    Effect.scoped,
+    Effect.provide(
+      Layer.mergeAll(
+        Layer.provide(Paths.layer, NodeServices.layer),
+        NodeServices.layer,
+      ),
+    ),
+  ),
 )
