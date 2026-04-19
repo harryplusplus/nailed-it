@@ -23,8 +23,7 @@
       "extensions/rg.ts",
       "extensions/fd.ts",
       "extensions/elapsed-time.ts",
-      "extensions/glm-5.1.ts",
-      "extensions/hindsight/index.ts"
+      "extensions/glm-5.1.ts"
     ]
   }
 }
