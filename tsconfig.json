@@ -1,1 +1,15 @@
-{ "compilerOptions": { "types": ["node"], "erasableSyntaxOnly": true } }
+{
+  "$schema": "node_modules/@effect/language-service/schema.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "erasableSyntaxOnly": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "allowedDuplicatedPackages": ["effect"]
+      }
+    ]
+  }
+}
