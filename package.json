@@ -12,6 +12,8 @@
     "setup": "node scripts/setup.ts"
   },
   "devDependencies": {
+    "@effect/cli": "^0.75.1",
+    "@effect/platform-node": "^0.106.0",
     "@types/node": "^25.6.0",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
