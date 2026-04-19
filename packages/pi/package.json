@@ -5,6 +5,9 @@
     "pi-package"
   ],
   "type": "module",
+  "dependencies": {
+    "@vectorize-io/hindsight-client": "^0.5.3"
+  },
   "peerDependencies": {
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-coding-agent": "*",
@@ -20,7 +23,8 @@
       "extensions/rg.ts",
       "extensions/fd.ts",
       "extensions/elapsed-time.ts",
-      "extensions/glm-5.1.ts"
+      "extensions/glm-5.1.ts",
+      "extensions/hindsight/index.ts"
     ]
   }
 }
