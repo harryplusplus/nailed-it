@@ -55,7 +55,15 @@ export default function (pi: ExtensionAPI) {
 
       return { content: [{ type: 'text', text }], details: data }
     },
-    renderResult({ details }, { expanded }) {
+    renderCall(args, theme, context) {
+      const text =
+        (context.lastComponent as Text | undefined) ?? new Text('', 0, 0)
+      let content = theme.fg('toolTitle', theme.bold('🌐 web_fetch '))
+      content += theme.fg('muted', args.url)
+      text.setText(content)
+      return text
+    },
+    renderResult({ details }, { expanded }, theme) {
       let text = ''
       if (details.title) {
         text += `Title: ${details.title}`
@@ -80,7 +88,7 @@ export default function (pi: ExtensionAPI) {
         }
       }
 
-      return new Text(text, 0, 0)
+      return new Text(theme.fg('toolOutput', text), 0, 0)
     },
   })
 }

@@ -64,9 +64,17 @@ export default function (pi: ExtensionAPI) {
 
       return { content: [{ type: 'text', text }], details: data }
     },
-    renderResult({ details }, { expanded }) {
+    renderCall(args, theme, context) {
+      const text =
+        (context.lastComponent as Text | undefined) ?? new Text('', 0, 0)
+      let content = theme.fg('toolTitle', theme.bold('🔍 web_search '))
+      content += theme.fg('muted', args.query)
+      text.setText(content)
+      return text
+    },
+    renderResult({ details }, { expanded }, theme) {
       if (!details.results.length) {
-        return new Text('No results', 0, 0)
+        return new Text(theme.fg('toolOutput', 'No results'), 0, 0)
       }
 
       let text = `${details.results.length} results`
@@ -88,7 +96,7 @@ export default function (pi: ExtensionAPI) {
 
           text += '\n'
           if (r.content) {
-            text += `Content: `
+            text += 'Content: '
             const graphemes = [...new Intl.Segmenter().segment(r.content)].map(
               s => s.segment,
             )
@@ -101,11 +109,11 @@ export default function (pi: ExtensionAPI) {
             text += 'No content'
           }
 
-          text += '\n---\n'
+          text += '\n\n---\n'
         }
       }
 
-      return new Text(text, 0, 0)
+      return new Text(theme.fg('toolOutput', text), 0, 0)
     },
   })
 }
