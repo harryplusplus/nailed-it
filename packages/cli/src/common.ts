@@ -7,11 +7,10 @@ export class ExecError extends Schema.TaggedErrorClass<ExecError>()(
 ) {}
 
 export const exec = (command: ChildProcess.Command, errorMessage: string) =>
-  command.asEffect().pipe(
-    Effect.flatMap(handle => handle.exitCode),
-    Effect.filterOrFail(
-      code => code === 0,
-      code => new ExecError({ message: errorMessage, exitCode: code }),
-    ),
-    Effect.asVoid,
-  )
+  Effect.gen(function* () {
+    const handle = yield* command
+    const exitCode = yield* handle.exitCode
+    if (exitCode !== 0) {
+      return yield* new ExecError({ message: errorMessage, exitCode })
+    }
+  })

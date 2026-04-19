@@ -36,5 +36,6 @@ export const pi = Command.make('pi', {}, () =>
 const copyPiAgentConfig = (fileName: string) =>
   Effect.gen(function* () {
     const paths = yield* Paths
+
     yield* copyFile(paths.repo.pi.agent, paths.global.pi.agent, fileName)
   })

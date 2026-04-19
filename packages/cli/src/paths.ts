@@ -34,6 +34,7 @@ export class Paths extends Context.Service<Paths>()('Paths', {
       '.config',
       'opencode',
     )
+
     return {
       repo: {
         root: repoRoot,
@@ -118,16 +119,19 @@ export const removeBrokenSymlinks = (dir: string) =>
     const path = yield* Path.Path
 
     const entries = yield* fs.readDirectory(dir)
-    for (const entry of entries) {
-      const stat = yield* lstat(entry).pipe(Effect.option)
-      if (Option.isSome(stat)) {
-        if (stat.value.isSymbolicLink()) {
+    yield* Effect.forEach(
+      entries,
+      entry =>
+        Effect.gen(function* () {
           const fullPath = path.join(dir, entry)
-          const stat = yield* fs.stat(fullPath).pipe(Effect.option)
-          if (Option.isNone(stat)) {
-            yield* fs.remove(fullPath)
+          const stat = yield* lstat(fullPath).pipe(Effect.option)
+          if (Option.isSome(stat) && stat.value.isSymbolicLink()) {
+            const target = yield* fs.stat(fullPath).pipe(Effect.option)
+            if (Option.isNone(target)) {
+              yield* fs.remove(fullPath)
+            }
           }
-        }
-      }
-    }
+        }),
+      { concurrency: 'unbounded' },
+    )
   })
