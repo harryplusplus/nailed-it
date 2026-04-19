@@ -87,7 +87,7 @@ Relative paths in this skill are relative to the skill directory.
         if (expanded) {
           text += `\nDirectory: ${details.dir}`
         }
-        return new Text(text)
+        return new Text(text, 0, 0)
       },
     })
   })

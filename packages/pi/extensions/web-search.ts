@@ -66,7 +66,7 @@ export default function (pi: ExtensionAPI) {
     },
     renderResult({ details }, { expanded }) {
       if (!details.results.length) {
-        return new Text('No results')
+        return new Text('No results', 0, 0)
       }
 
       let text = `${details.results.length} results`
@@ -105,7 +105,7 @@ export default function (pi: ExtensionAPI) {
         }
       }
 
-      return new Text(text)
+      return new Text(text, 0, 0)
     },
   })
 }
