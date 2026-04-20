@@ -195,7 +195,7 @@ ${text}
           .filter(c => c.type === 'text' || c.type === 'thinking')
           .map(c => {
             if (c.type === 'text') return c.text
-            return `<thinking>${c.thinking}</thinking>`
+            return `<thinking>\n${c.thinking}\n</thinking>`
           })
           .join('\n')
       }
