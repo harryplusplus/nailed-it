@@ -67,7 +67,7 @@ export const pg = Command.make('pg', {}, () =>
 
     yield* Console.log(`# 4. Configure search_path and extensions`)
     yield* Console.log(
-      `psql -d hindsight -c "ALTER DATABASE hindsight SET search_path TO '$user, public, tokenizer_catalog, bm25_catalog';"`,
+      `psql -d hindsight -c "ALTER DATABASE hindsight SET search_path TO public,tokenizer_catalog,bm25_catalog;"`,
     )
     yield* Console.log(
       `psql -d hindsight -c "CREATE EXTENSION IF NOT EXISTS vector CASCADE;"`,
