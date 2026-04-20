@@ -4,6 +4,8 @@ import {
   HindsightClient,
   recallResponseToPromptString,
 } from '@vectorize-io/hindsight-client'
+import path from 'node:path'
+import fs from 'node:fs/promises'
 
 interface Config {
   bankId: string
@@ -18,14 +20,14 @@ interface Config {
 }
 
 const DEFAULT_CONFIG: Config = {
+  apiUrl: 'http://localhost:8888',
   bankId: 'openclaw',
-  autoRecall: false,
-  autoRetain: false,
+  autoRecall: true,
+  autoRetain: true,
   debug: true,
   recallTimeoutMs: 10_000,
   recallBudget: 'mid',
   recallMaxTokens: 4 * 1024,
-  apiUrl: 'http://localhost:8888',
 }
 
 function loadConfig(): Config {
@@ -54,15 +56,22 @@ export default async function (pi: ExtensionAPI) {
   const config = loadConfig()
 
   let sessionId = ''
+  let logPath = ''
 
-  const debug = (...args: unknown[]) => {
+  const debug = async (...args: unknown[]) => {
     if (!config.debug) return
-    console.error(
-      '[Hindsight]',
-      `bank=${config.bankId}`,
-      `session=${sessionId}`,
-      ...args,
-    )
+    if (!logPath) return
+
+    try {
+      await fs.appendFile(
+        logPath,
+        `${new Date().toISOString()} ${args
+          .map(a => (typeof a === 'string' ? a : JSON.stringify(a)))
+          .join(' ')}\n`,
+      )
+    } catch {
+      // Ignore logging errors
+    }
   }
 
   const client = new HindsightClient({
@@ -72,6 +81,17 @@ export default async function (pi: ExtensionAPI) {
 
   pi.on('session_start', async (_event, ctx) => {
     sessionId = ctx.sessionManager.getSessionId()
+
+    if (config.debug) {
+      const sessionFile = ctx.sessionManager.getSessionFile()
+      if (sessionFile) {
+        logPath = path.format({
+          ...path.parse(sessionFile),
+          ext: '.log',
+          base: undefined,
+        })
+      }
+    }
   })
 
   pi.on('before_agent_start', async (event, _ctx) => {
@@ -85,7 +105,7 @@ export default async function (pi: ExtensionAPI) {
         .map(x => x.segment)
         .slice(0, 80)
         .join('')
-      debug(`recall: query="${queryPreview}..."`)
+      await debug(`recall: query="${queryPreview}..."`)
     }
 
     // TODO: recall timeout & cancellation
@@ -99,7 +119,7 @@ export default async function (pi: ExtensionAPI) {
 
       const { results } = response
       if (results.length === 0) {
-        debug('recall: no memories found')
+        await debug('recall: no memories found')
         return
       }
 
@@ -113,11 +133,11 @@ Current time: ${formatCurrentTime()}
 ${text}
 </hindsight_memories>`
 
-      debug(`recall: injected ${results.length} memories`)
+      await debug(`recall: injected:\n`, text)
 
       return { systemPrompt: event.systemPrompt + block }
     } catch (e) {
-      debug('recall error:', e)
+      await debug('recall error:', e)
     }
   })
 
@@ -169,7 +189,7 @@ ${text}
         async: true,
       })
     } catch (e) {
-      debug('retain error:', e)
+      await debug('retain error:', e)
     }
   })
 }
