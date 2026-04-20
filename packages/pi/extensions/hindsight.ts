@@ -36,6 +36,10 @@ function loadConfig(): Config {
   return config
 }
 
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+const SPINNER_INTERVAL_MS = 80
+const RECALL_SPINNER_KEY = 'hindsight-recall'
+
 const MEMORY_TAG_PATTERN = /<hindsight_memories>[\s\S]*?<\/hindsight_memories>/g
 
 function stripMemoryTags(text: string): string {
@@ -94,7 +98,7 @@ export default async function (pi: ExtensionAPI) {
     }
   })
 
-  pi.on('before_agent_start', async event => {
+  pi.on('before_agent_start', async (event, ctx) => {
     if (!config.autoRecall) return
 
     const query = event.prompt.trim()
@@ -107,6 +111,34 @@ export default async function (pi: ExtensionAPI) {
         .join('')
       await debug('recall', 'query:\n', `${queryPreview}...`)
     }
+
+    // Show spinner widget while recalling
+    let frameIndex = 0
+    let tuiRef: { requestRender: () => void } | null = null
+
+    ctx.ui.setWidget(RECALL_SPINNER_KEY, (tui, theme) => {
+      tuiRef = tui
+      return {
+        render: () => [
+          theme.fg(
+            'accent',
+            `${SPINNER_FRAMES[frameIndex]} Recalling memories...`,
+          ),
+        ],
+        invalidate: () => {},
+      }
+    })
+
+    using _disposeWidget = {
+      [Symbol.dispose]() {
+        ctx.ui.setWidget(RECALL_SPINNER_KEY, undefined)
+      },
+    }
+
+    using _spinnerInterval = setInterval(() => {
+      frameIndex = (frameIndex + 1) % SPINNER_FRAMES.length
+      tuiRef?.requestRender()
+    }, SPINNER_INTERVAL_MS)
 
     // TODO: recall timeout & cancellation
     try {
