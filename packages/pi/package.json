@@ -29,7 +29,8 @@
       "extensions/rg.ts",
       "extensions/fd.ts",
       "extensions/elapsed-time.ts",
-      "extensions/glm-5.1.ts"
+      "extensions/glm-5.1.ts",
+      "extensions/gh.ts"
     ]
   }
 }
