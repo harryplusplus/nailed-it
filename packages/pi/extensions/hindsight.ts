@@ -192,8 +192,11 @@ ${text}
                 .join('\n')
       } else if (m.role === 'assistant') {
         content = m.content
-          .filter(c => c.type === 'text')
-          .map(c => c.text)
+          .filter(c => c.type === 'text' || c.type === 'thinking')
+          .map(c => {
+            if (c.type === 'text') return c.text
+            return `<thinking>${c.thinking}</thinking>`
+          })
           .join('\n')
       }
 
