@@ -1,0 +1,9 @@
+{
+  "name": "@nailed-it/hs-web",
+  "scripts": {
+    "start": "hindsight-control-plane"
+  },
+  "dependencies": {
+    "@vectorize-io/hindsight-control-plane": "^0.5.3"
+  }
+}

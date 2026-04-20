@@ -1,0 +1,10 @@
+[project]
+name = "nailed-it"
+version = "0.0.0"
+description = "Harry's personal AI assistant"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "hindsight-api-slim>=0.5.3",
+    "sentence-transformers>=5.4.1",
+]
