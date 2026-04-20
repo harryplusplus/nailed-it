@@ -22,15 +22,16 @@
   },
   "pi": {
     "extensions": [
-      "extensions/temperature-zero.ts",
-      "extensions/web-search.ts",
-      "extensions/web-fetch.ts",
+      "extensions/elapsed-time.ts",
+      "extensions/fd.ts",
+      "extensions/gh.ts",
+      "extensions/glm-5.1.ts",
+      "extensions/hindsight.ts",
       "extensions/notify.ts",
       "extensions/rg.ts",
-      "extensions/fd.ts",
-      "extensions/elapsed-time.ts",
-      "extensions/glm-5.1.ts",
-      "extensions/gh.ts"
+      "extensions/temperature-zero.ts",
+      "extensions/web-fetch.ts",
+      "extensions/web-search.ts"
     ]
   }
 }
