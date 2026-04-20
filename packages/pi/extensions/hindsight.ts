@@ -226,12 +226,7 @@ ${text}
     try {
       await client.retain(config.bankId, transcript, {
         documentId,
-        context: 'pi',
-        metadata: {
-          retained_at: retainedAt,
-          message_count: String(messageCount),
-          session_id: sessionId,
-        },
+        timestamp: retainedAt,
         updateMode: 'append',
         async: true,
       })
