@@ -1019,7 +1019,7 @@ wheels = [
 [[package]]
 name = "hindsight-api-slim"
 version = "0.5.3"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "external/hindsight/hindsight-api-slim" }
 dependencies = [
     { name = "aiohttp" },
     { name = "alembic" },
@@ -1074,9 +1074,95 @@ dependencies = [
     { name = "winloop", marker = "sys_platform == 'win32'" },
     { name = "wsproto" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0c/f0/b2d5bf50c86d2a7a4a95871c0ad70945cba3cc6b2ba1a7272db6a06e84a8/hindsight_api_slim-0.5.3.tar.gz", hash = "sha256:76e7f0770ffd3c648ca6b0a8503a996439294c5ed0e315d5fb18bf9d03479ae9", size = 513061, upload-time = "2026-04-17T13:33:30.955Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/25/bf8b7a7beb456999f5da3ae1725250048fd98f41651011c62f613e53e231/hindsight_api_slim-0.5.3-py3-none-any.whl", hash = "sha256:7f3c59961f02d984fad22dd206bddefdc09692c3d74682acd17b4674083b4b9d", size = 620076, upload-time = "2026-04-17T13:33:29.447Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.13.3" },
+    { name = "alembic", specifier = ">=1.17.1" },
+    { name = "anthropic", specifier = ">=0.40.0" },
+    { name = "asyncpg", specifier = ">=0.29.0" },
+    { name = "authlib", specifier = ">=1.6.9" },
+    { name = "boto3", specifier = ">=1.42.74" },
+    { name = "claude-agent-sdk", specifier = ">=0.1.27" },
+    { name = "cohere", specifier = ">=5.0.0" },
+    { name = "cryptography", specifier = ">=46.0.6" },
+    { name = "dateparser", specifier = ">=1.2.2" },
+    { name = "einops", marker = "extra == 'local-ml'", specifier = ">=0.8.2" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.120.3" },
+    { name = "fastmcp", specifier = ">=3.2.0" },
+    { name = "filelock", specifier = ">=3.20.1" },
+    { name = "filelock", marker = "extra == 'test'", specifier = ">=3.20.1" },
+    { name = "flashrank", marker = "extra == 'local-ml'", specifier = ">=0.2.0" },
+    { name = "google-auth", specifier = ">=2.0.0" },
+    { name = "google-genai", specifier = ">=1.0.0" },
+    { name = "greenlet", specifier = ">=3.2.4,<3.4.0" },
+    { name = "hindsight-api-slim", extras = ["local-ml", "embedded-db"], marker = "extra == 'all'" },
+    { name = "httpx", specifier = ">=0.27.0" },
+    { name = "huggingface-hub", marker = "extra == 'local-llm'", specifier = ">=0.20.0" },
+    { name = "langchain-core", specifier = ">=1.2.22" },
+    { name = "langchain-text-splitters", specifier = ">=0.3.0" },
+    { name = "langsmith", specifier = ">=0.6.3" },
+    { name = "litellm", specifier = ">=1.83.0" },
+    { name = "llama-cpp-python", extras = ["server"], marker = "extra == 'local-llm'", specifier = ">=0.3.0" },
+    { name = "markitdown", extras = ["pdf", "docx", "pptx", "xlsx", "xls"], specifier = ">=0.1.4" },
+    { name = "mlx", marker = "extra == 'local-ml'", specifier = ">=0.31.0" },
+    { name = "mlx-lm", marker = "extra == 'local-ml'", specifier = ">=0.31.1" },
+    { name = "obstore", specifier = ">=0.4.0" },
+    { name = "openai", specifier = ">=1.0.0" },
+    { name = "opentelemetry-api", specifier = ">=1.20.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.20.0" },
+    { name = "opentelemetry-exporter-prometheus", specifier = ">=0.41b0" },
+    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.41b0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.20.0" },
+    { name = "opentelemetry-semantic-conventions", specifier = ">=0.41b0" },
+    { name = "orjson", specifier = ">=3.11.6" },
+    { name = "pg0-embedded", marker = "extra == 'embedded-db'", specifier = ">=0.11.0" },
+    { name = "pgvector", specifier = ">=0.4.1" },
+    { name = "pillow", specifier = ">=12.1.1" },
+    { name = "protobuf", specifier = ">=6.33.5" },
+    { name = "psycopg2-binary", specifier = ">=2.9.11" },
+    { name = "pyasn1", specifier = ">=0.6.3" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pygments", specifier = ">=2.20.0" },
+    { name = "pyjwt", specifier = ">=2.12.0" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.8.0" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
+    { name = "pytest-timeout", marker = "extra == 'test'", specifier = ">=2.4.0" },
+    { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.0.0" },
+    { name = "python-dateutil", specifier = ">=2.8.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "python-multipart", specifier = ">=0.0.22" },
+    { name = "rich", specifier = ">=13.0.0" },
+    { name = "safetensors", marker = "extra == 'local-ml'", specifier = ">=0.6.2" },
+    { name = "sentence-transformers", marker = "extra == 'local-ml'", specifier = ">=3.3.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.44" },
+    { name = "testcontainers", marker = "extra == 'test'", specifier = ">=4.0.0" },
+    { name = "tiktoken", specifier = ">=0.12.0" },
+    { name = "torch", marker = "extra == 'local-ml'", specifier = ">=2.6.0", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "tornado", specifier = ">=6.5.5" },
+    { name = "transformers", marker = "extra == 'local-ml'", specifier = ">=4.53.0" },
+    { name = "typer", specifier = ">=0.9.0" },
+    { name = "urllib3", specifier = ">=2.6.3" },
+    { name = "uvicorn", specifier = ">=0.38.0" },
+    { name = "uvloop", marker = "sys_platform != 'win32'", specifier = ">=0.22.1" },
+    { name = "winloop", marker = "sys_platform == 'win32'", specifier = ">=0.1.0" },
+    { name = "wsproto", specifier = ">=1.0.0" },
+]
+provides-extras = ["local-ml", "local-llm", "embedded-db", "all", "test"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "filelock", specifier = ">=3.20.1" },
+    { name = "pytest", specifier = ">=9.0.0" },
+    { name = "pytest-asyncio", specifier = ">=1.3.0" },
+    { name = "pytest-rerunfailures", specifier = ">=15.0" },
+    { name = "pytest-timeout", specifier = ">=2.4.0" },
+    { name = "pytest-xdist", specifier = ">=3.8.0" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
+    { name = "ruff", specifier = ">=0.8.0" },
+    { name = "testcontainers", specifier = ">=4.0.0" },
+    { name = "ty", specifier = ">=0.0.1" },
 ]
 
 [[package]]
@@ -1762,7 +1848,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "hindsight-api-slim", specifier = ">=0.5.3" },
+    { name = "hindsight-api-slim", editable = "external/hindsight/hindsight-api-slim" },
     { name = "sentence-transformers", specifier = ">=5.4.1" },
 ]
 
