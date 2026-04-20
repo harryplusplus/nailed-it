@@ -94,7 +94,7 @@ export default async function (pi: ExtensionAPI) {
     }
   })
 
-  pi.on('before_agent_start', async (event, _ctx) => {
+  pi.on('before_agent_start', async event => {
     if (!config.autoRecall) return
 
     const query = event.prompt.trim()
@@ -105,7 +105,7 @@ export default async function (pi: ExtensionAPI) {
         .map(x => x.segment)
         .slice(0, 80)
         .join('')
-      await debug(`recall: query="${queryPreview}..."`)
+      await debug('recall', 'query:\n', `${queryPreview}...`)
     }
 
     // TODO: recall timeout & cancellation
@@ -119,7 +119,7 @@ export default async function (pi: ExtensionAPI) {
 
       const { results } = response
       if (results.length === 0) {
-        await debug('recall: no memories found')
+        await debug('recall', 'no memories found')
         return
       }
 
@@ -133,18 +133,18 @@ Current time: ${formatCurrentTime()}
 ${text}
 </hindsight_memories>`
 
-      await debug(`recall: injected:\n`, text)
+      await debug('recall', 'text:\n', text)
 
       return { systemPrompt: event.systemPrompt + block }
     } catch (e) {
-      await debug('recall error:', e)
+      await debug('recall', 'error:\n', e)
     }
   })
 
   pi.on('agent_end', async event => {
     if (!config.autoRetain) return
 
-    const conversation: {
+    const infos: {
       role: 'user' | 'assistant'
       content: string
       timestamp: string
@@ -181,15 +181,26 @@ ${text}
 
     const documentId = `pi:${sessionId}`
 
+    const content = JSON.stringify(infos)
+    await debug(
+      'retain',
+      'bankId',
+      config.bankId,
+      'documentId',
+      documentId,
+      'content:\n',
+      content,
+    )
+
     // TODO: retain timeout & cancellation
     try {
-      await client.retain(config.bankId, JSON.stringify(conversation), {
+      await client.retain(config.bankId, content, {
         documentId,
         updateMode: 'append',
         async: true,
       })
     } catch (e) {
-      await debug('retain error:', e)
+      await debug('retain', 'error:\n', e)
     }
   })
 }
