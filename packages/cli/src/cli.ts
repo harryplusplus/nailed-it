@@ -5,9 +5,10 @@ import { submodules } from './commands/submodules.ts'
 import { pi } from './commands/pi.ts'
 import { Paths } from './paths.ts'
 import { opencode } from './commands/opencode.ts'
+import { pg } from './commands/pg.ts'
 
 const program = Command.make('cli').pipe(
-  Command.withSubcommands([submodules, pi, opencode]),
+  Command.withSubcommands([submodules, pi, opencode, pg]),
   Command.run({ version: '0.0.0' }),
 )
 

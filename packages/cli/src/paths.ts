@@ -46,6 +46,11 @@ export class Paths extends Context.Service<Paths>()('Paths', {
           config: path.join(repoRoot, 'assets', 'config', 'opencode'),
           plugins: path.join(repoRoot, 'packages', 'opencode', 'plugins'),
         },
+        external: {
+          vectorChord: path.join(repoRoot, 'external', 'VectorChord'),
+          vectorChordBm25: path.join(repoRoot, 'external', 'VectorChord-bm25'),
+          pgTokenizerRs: path.join(repoRoot, 'external', 'pg_tokenizer.rs'),
+        },
       },
       global: {
         pi: { agent: path.join(os.homedir(), '.pi', 'agent') },
