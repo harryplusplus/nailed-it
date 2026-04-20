@@ -11,3 +11,6 @@
 	path = external/hindsight
 	url = https://github.com/harryplusplus/hindsight.git
 	branch = fix/ensure-ascii
+[submodule "external/hermes-agent"]
+	path = external/hermes-agent
+	url = https://github.com/harryplusplus/hermes-agent.git
