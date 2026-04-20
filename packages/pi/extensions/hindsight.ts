@@ -12,7 +12,6 @@ interface Config {
   autoRecall: boolean
   autoRetain: boolean
   debug: boolean
-  recallTimeoutMs: number
   recallBudget: Budget
   recallMaxTokens: number
   apiUrl: string
@@ -25,7 +24,6 @@ const DEFAULT_CONFIG: Config = {
   autoRecall: true,
   autoRetain: true,
   debug: true,
-  recallTimeoutMs: 10_000,
   recallBudget: 'mid',
   recallMaxTokens: 4 * 1024,
 }

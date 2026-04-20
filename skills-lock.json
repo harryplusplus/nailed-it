@@ -1,15 +1,1 @@
-{
-  "version": 1,
-  "skills": {
-    "hindsight-architect": {
-      "source": "vectorize-io/hindsight",
-      "sourceType": "github",
-      "computedHash": "4df3e7c9108f58efd71c42a3b12b20f9391d316a3cb704472a341b6733073b3d"
-    },
-    "hindsight-docs": {
-      "source": "vectorize-io/hindsight",
-      "sourceType": "github",
-      "computedHash": "6d8b28dca6fa36617f8f809b5537ed3bfdb7a60c77d73ef8c81e93e1bcb0499e"
-    }
-  }
-}
+{ "version": 1, "skills": {} }
