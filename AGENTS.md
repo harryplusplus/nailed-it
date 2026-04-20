@@ -1,5 +1,9 @@
 # Project Guidelines
 
+## Before Coding
+
+Read the karpathy-guidelines skill before any coding work (writing, reviewing, refactoring).
+
 ## TypeScript & package.json
 
 After making changes to TypeScript or package.json files, always run oxfmt and oxlint on the changed files only:
