@@ -144,58 +144,65 @@ ${text}
   pi.on('agent_end', async event => {
     if (!config.autoRetain) return
 
-    const infos: {
-      role: 'user' | 'assistant'
-      content: string
-      timestamp: string
-    }[] = event.messages
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .map(m => {
-        if (m.role === 'user') {
-          const content =
-            typeof m.content === 'string'
-              ? m.content
-              : m.content
-                  .filter(c => c.type === 'text')
-                  .map(t => t.text)
-                  .join('\n')
+    const allowedRoles = new Set(['user', 'assistant'])
+    const parts: string[] = []
+    let messageCount = 0
 
-          const timestamp = new Date(m.timestamp).toISOString()
+    for (const m of event.messages) {
+      if (!allowedRoles.has(m.role)) continue
 
-          return { role: 'user', content: stripMemoryTags(content), timestamp }
-        } else {
-          const content = m.content
-            .filter(c => c.type === 'text')
-            .map(t => t.text)
-            .join('\n')
+      let content = ''
+      if (m.role === 'user') {
+        const raw = m.content
+        content =
+          typeof raw === 'string'
+            ? raw
+            : raw
+                .filter(c => c.type === 'text')
+                .map(c => c.text)
+                .join('\n')
+      } else if (m.role === 'assistant') {
+        content = m.content
+          .filter(c => c.type === 'text')
+          .map(c => c.text)
+          .join('\n')
+      }
 
-          const timestamp = new Date(m.timestamp).toISOString()
+      content = stripMemoryTags(content).trim()
+      if (!content) continue
 
-          return {
-            role: 'assistant',
-            content: stripMemoryTags(content),
-            timestamp,
-          }
-        }
-      })
+      parts.push(`[role: ${m.role}]\n${content}\n[${m.role}:end]`)
+      messageCount++
+    }
 
+    if (parts.length === 0) return
+
+    const transcript = parts.join('\n\n')
     const documentId = `pi:${sessionId}`
+    const retainedAt = new Date().toISOString()
 
-    const content = JSON.stringify(infos)
     await debug(
       'retain',
       'bankId',
       config.bankId,
       'documentId',
       documentId,
-      'content:\n',
-      content,
+      'messageCount',
+      messageCount,
+      'transcript:\n',
+      transcript,
     )
 
     // TODO: retain timeout & cancellation
     try {
-      await client.retain(config.bankId, content, {
+      await client.retain(config.bankId, transcript, {
         documentId,
+        context: 'pi',
+        metadata: {
+          retained_at: retainedAt,
+          message_count: String(messageCount),
+          session_id: sessionId,
+        },
         updateMode: 'append',
         async: true,
       })
