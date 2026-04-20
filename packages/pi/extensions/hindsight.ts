@@ -144,7 +144,6 @@ export default async function (pi: ExtensionAPI) {
         budget: config.recallBudget,
         maxTokens: config.recallMaxTokens,
         types: ['world', 'experience', 'observation'],
-        includeSourceFacts: true,
       })
 
       const { results } = response
