@@ -22,6 +22,7 @@
   },
   "pi": {
     "extensions": [
+      "extensions/activate-skill.ts",
       "extensions/elapsed-time.ts",
       "extensions/fd.ts",
       "extensions/gh.ts",
