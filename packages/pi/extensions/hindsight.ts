@@ -23,7 +23,7 @@ const DEFAULT_CONFIG: Config = {
   bankId: 'openclaw',
   autoRecall: true,
   autoRetain: true,
-  debug: true,
+  debug: false,
   recallBudget: 'mid',
   recallMaxTokens: 4 * 1024,
 }
@@ -167,55 +167,104 @@ ${text}
     }
   })
 
-  pi.on('agent_end', async event => {
+  pi.on('agent_end', async (event, ctx) => {
     if (!config.autoRetain) return
 
-    const allowedRoles = new Set(['user', 'assistant'])
-    const parts: string[] = []
-    let messageCount = 0
+    const transcript = event.messages
+      .map(m => {
+        if (m.role === 'user') {
+          return {
+            role: m.role,
+            content:
+              typeof m.content === 'string'
+                ? m.content
+                : m.content
+                    .filter(c => c.type === 'text')
+                    .map(c => c.text)
+                    .join('\n'),
+            timestamp: new Date(m.timestamp).toISOString(),
+          }
+        }
 
-    for (const m of event.messages) {
-      if (!allowedRoles.has(m.role)) continue
+        if (m.role === 'assistant') {
+          return {
+            role: m.role,
+            content: m.content
+              .map(c => {
+                if (c.type === 'text') {
+                  return { type: c.type, text: c.text }
+                }
 
-      let content = ''
-      if (m.role === 'user') {
-        const raw = m.content
-        content =
-          typeof raw === 'string'
-            ? raw
-            : raw
-                .filter(c => c.type === 'text')
-                .map(c => c.text)
-                .join('\n')
-      } else if (m.role === 'assistant') {
-        content = m.content
-          .map(c => {
-            if (c.type === 'text')
-              return ['<text>', c.text, '</text>'].join('\n')
-            if (c.type === 'thinking')
-              return ['<thinking>', c.thinking, '</thinking>'].join('\n')
-            return [
-              '<tool_call>',
-              `  <name>${c.name}</name>`,
-              `  <arguments>${JSON.stringify(c.arguments)}</arguments>`,
-              '</tool_call>',
-            ].join('\n')
-          })
-          .join('\n')
-      }
+                if (c.type === 'thinking') {
+                  return { type: c.type, thinking: c.thinking }
+                }
 
-      content = stripMemoryTags(content).trim()
-      if (!content) continue
+                if (c.type === 'toolCall') {
+                  return {
+                    type: 'tool_use',
+                    id: c.id,
+                    name: c.name,
+                    input: c.arguments,
+                  }
+                }
 
-      parts.push(`[role: ${m.role}]\n${content}\n[${m.role}:end]`)
-      messageCount++
-    }
+                return null
+              })
+              .filter(Boolean),
+            model: `${m.provider}/${m.model}`,
+            timestamp: new Date(m.timestamp).toISOString(),
+          }
+        }
 
-    if (parts.length === 0) return
+        if (m.role === 'toolResult') {
+          return {
+            role: 'tool_result',
+            tool_use_id: m.toolCallId,
+            name: m.toolName,
+            content: m.content
+              .filter(c => c.type === 'text')
+              .map(c => c.text)
+              .join('\n'),
+            is_error: m.isError,
+            timestamp: new Date(m.timestamp).toISOString(),
+          }
+        }
 
-    const transcript = parts.join('\n\n') + '\n'
+        if (m.role === 'bashExecution') {
+          return {
+            role: 'bash_execution',
+            command: m.command,
+            output: m.output.slice(0, 2000),
+            exit_code: m.exitCode,
+            timestamp: new Date(m.timestamp).toISOString(),
+          }
+        }
+
+        if (m.role === 'custom') {
+          return {
+            role: 'custom',
+            custom_type: m.customType,
+            content:
+              typeof m.content === 'string'
+                ? m.content
+                : m.content
+                    .filter(c => c.type === 'text')
+                    .map(c => c.text)
+                    .join('\n'),
+            timestamp: new Date(m.timestamp).toISOString(),
+          }
+
+          return null
+        }
+      })
+      .filter(Boolean)
+
+    if (transcript.length === 0) return
+
+    const content = stripMemoryTags(JSON.stringify(transcript, null, 2)).trim()
+    if (!content) return
+
     const documentId = `pi:${sessionId}`
-    const retainedAt = new Date().toISOString()
 
     await debug(
       'retain',
@@ -224,18 +273,27 @@ ${text}
       'documentId',
       documentId,
       'messageCount',
-      messageCount,
-      'transcript:\n',
-      transcript,
+      transcript.length,
     )
+
+    const lastMessage = event.messages.at(-1)
+    const timestamp = lastMessage
+      ? new Date(lastMessage.timestamp).toISOString()
+      : new Date().toISOString()
 
     // TODO: retain timeout & cancellation
     try {
-      await client.retain(config.bankId, transcript, {
+      await client.retain(config.bankId, content, {
         documentId,
-        timestamp: retainedAt,
+        timestamp,
         updateMode: 'append',
         async: true,
+        metadata: {
+          source: 'pi',
+          cwd: ctx.cwd,
+          message_count: String(transcript.length),
+        },
+        tags: ['pi-session'],
       })
     } catch (e) {
       await debug('retain', 'error:\n', e)
