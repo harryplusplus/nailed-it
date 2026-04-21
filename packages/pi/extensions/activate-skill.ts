@@ -57,6 +57,9 @@ export default async function (pi: ExtensionAPI) {
       label: 'Activate Skill',
       description,
       promptSnippet,
+      promptGuidelines: [
+        'Before acting on any user request, check if a relevant skill from available_skills should be activated. If so, invoke activate_skill first.',
+      ],
       parameters: Type.Object({
         name: Type.Union(skills.map(s => Type.Literal(s.name))),
       }),
@@ -139,12 +142,9 @@ export default async function (pi: ExtensionAPI) {
         '\n\n' +
         [
           '## Active Skills',
-          '',
-          'The following skills have been activated in this session. Their full instructions can be reloaded via the `activate_skill` tool when needed:',
-          '',
           ...lines,
           '',
-          "If a skill's detailed instructions are no longer in the conversation context (e.g., after context compaction), invoke `activate_skill` with the skill name to reload them.",
+          'Re-invoke `activate_skill` if detailed instructions are no longer in context.',
         ].join('\n'),
     }
   })
