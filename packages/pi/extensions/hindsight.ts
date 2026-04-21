@@ -189,10 +189,17 @@ ${text}
                 .join('\n')
       } else if (m.role === 'assistant') {
         content = m.content
-          .filter(c => c.type === 'text' || c.type === 'thinking')
           .map(c => {
-            if (c.type === 'text') return c.text
-            return `<thinking>\n${c.thinking}\n</thinking>`
+            if (c.type === 'text')
+              return ['<text>', c.text, '</text>'].join('\n')
+            if (c.type === 'thinking')
+              return ['<thinking>', c.thinking, '</thinking>'].join('\n')
+            return [
+              '<tool_call>',
+              `  <name>${c.name}</name>`,
+              `  <arguments>${JSON.stringify(c.arguments)}</arguments>`,
+              '</tool_call>',
+            ].join('\n')
           })
           .join('\n')
       }
