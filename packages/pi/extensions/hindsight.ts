@@ -127,11 +127,8 @@ export default async function (pi: ExtensionAPI) {
       }
     })
 
-    using _disposeWidget = {
-      [Symbol.dispose]() {
-        ctx.ui.setWidget(RECALL_SPINNER_KEY, undefined)
-      },
-    }
+    using disposer = new DisposableStack()
+    disposer.defer(() => ctx.ui.setWidget(RECALL_SPINNER_KEY, undefined))
 
     using _spinnerInterval = setInterval(() => {
       frameIndex = (frameIndex + 1) % SPINNER_FRAMES.length
@@ -209,7 +206,7 @@ ${text}
 
     if (parts.length === 0) return
 
-    const transcript = parts.join('\n\n')
+    const transcript = parts.join('\n\n') + '\n'
     const documentId = `pi:${sessionId}`
     const retainedAt = new Date().toISOString()
 
