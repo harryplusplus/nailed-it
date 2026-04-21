@@ -5,6 +5,7 @@ import {
 import { Type } from '@sinclair/typebox'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import type { Dirent } from 'node:fs'
 import { Text } from '@mariozechner/pi-tui'
 
 type SkillInfo = {
@@ -139,20 +140,31 @@ const IGNORE_EXTS = new Set([
   '.dylib',
   '.bin',
 ])
+const HIGH_PRIORITY = new Set(['scripts', 'references'])
 
 async function listSkillResources(
   skillDir: string,
-  opts: { maxFiles?: number; maxDepth?: number } = {},
+  opts: { maxFiles?: number; maxLevels?: number } = {},
 ): Promise<{ files: string[]; capped: boolean }> {
-  const { maxFiles = 20, maxDepth = 2 } = opts
+  const { maxFiles = 20, maxLevels = 2 } = opts
   const files: string[] = []
 
   async function walk(dir: string, rel: string, depth: number) {
-    if (depth > maxDepth || files.length >= maxFiles) return
+    if (depth >= maxLevels || files.length >= maxFiles) return
 
-    const entries = await fs.readdir(dir, { withFileTypes: true })
+    let entries: Dirent[]
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
 
-    const sorted = entries.toSorted((a, b) => a.name.localeCompare(b.name))
+    const sorted = entries.toSorted((a, b) => {
+      const aHigh = HIGH_PRIORITY.has(a.name) ? 0 : 1
+      const bHigh = HIGH_PRIORITY.has(b.name) ? 0 : 1
+      if (aHigh !== bHigh) return aHigh - bHigh
+      return a.name.localeCompare(b.name)
+    })
 
     for (const entry of sorted) {
       if (files.length >= maxFiles) break
