@@ -17,6 +17,8 @@ type SkillInfo = {
 }
 
 export default async function (pi: ExtensionAPI) {
+  const activatedSkills = new Map<string, string | undefined>()
+
   pi.on('session_start', async () => {
     const skills = pi
       .getCommands()
@@ -27,6 +29,8 @@ export default async function (pi: ExtensionAPI) {
         path: c.sourceInfo.path,
       }))
       .toSorted((a, b) => a.name.localeCompare(b.name))
+
+    activatedSkills.clear()
 
     if (!skills.length) return
 
@@ -80,6 +84,7 @@ export default async function (pi: ExtensionAPI) {
         }
 
         await info.loadPromise
+        activatedSkills.set(name, info.description)
 
         const dir = path.dirname(info.path)
         const { files: resources, capped } = await listSkillResources(dir)
@@ -118,6 +123,30 @@ export default async function (pi: ExtensionAPI) {
         return new Text(text, 0, 0)
       },
     })
+  })
+
+  pi.on('before_agent_start', async event => {
+    if (activatedSkills.size === 0) return
+
+    const lines = [...activatedSkills].map(
+      ([name, description]) =>
+        `- **${name}**${description ? `: ${description}` : ''}`,
+    )
+
+    return {
+      systemPrompt:
+        event.systemPrompt +
+        '\n\n' +
+        [
+          '## Active Skills',
+          '',
+          'The following skills have been activated in this session. Their full instructions can be reloaded via the `activate_skill` tool when needed:',
+          '',
+          ...lines,
+          '',
+          "If a skill's detailed instructions are no longer in the conversation context (e.g., after context compaction), invoke `activate_skill` with the skill name to reload them.",
+        ].join('\n'),
+    }
   })
 }
 
