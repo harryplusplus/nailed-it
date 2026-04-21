@@ -7,6 +7,14 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { Text } from '@mariozechner/pi-tui'
 
+type SkillInfo = {
+  name: string
+  description: string | undefined
+  path: string
+  content: string
+  loadPromise: Promise<void> | null
+}
+
 export default async function (pi: ExtensionAPI) {
   pi.on('session_start', async () => {
     const skills = pi
@@ -19,29 +27,24 @@ export default async function (pi: ExtensionAPI) {
       }))
       .toSorted((a, b) => a.name.localeCompare(b.name))
 
+    if (!skills.length) return
+
     const promptSnippet =
       'Load a specialized skill that provides domain-specific instructions and workflows'
     let description = `${promptSnippet}.`
-    if (!skills.length) {
-      description += ' No skills are currently available.'
-    } else {
-      description += `
 
-When you recognize that a task matches one of the available skills listed below, use this tool to load the full skill instructions.
+    description += [
+      '',
+      'When a task matches one of the skills below, invoke this tool with the skill name to load its full instructions and bundled resources.',
+      '',
+      '## Available Skills',
+      ...skills.map(
+        s => `- **${s.name}**${s.description ? `: ${s.description}` : ''}`,
+      ),
+    ].join('\n')
 
-The skill will inject detailed instructions, workflows, and access to bundled resources (scripts, references, templates) into the conversation context.
-
-Tool output includes a \`<skill_content name="...">\` block with the loaded content.
-
-The following skills provide specialized sets of instructions for particular tasks
-Invoke this tool to load a skill when a task matches one of the available skills listed below:
-
-## Available Skills
-${skills.map(s => `- **${s.name}**${s.description ? `: ${s.description}` : ''}`).join('\n')}`
-    }
-
-    const infoMap = new Map(
-      skills.map(s => [s.name, { ...s, loaded: false, content: '' }]),
+    const infoMap = new Map<string, SkillInfo>(
+      skills.map(s => [s.name, { ...s, loadPromise: null, content: '' }]),
     )
 
     pi.registerTool({
@@ -50,9 +53,7 @@ ${skills.map(s => `- **${s.name}**${s.description ? `: ${s.description}` : ''}`)
       description,
       promptSnippet,
       parameters: Type.Object({
-        name: Type.String({
-          description: 'The name of the skill from available_skills',
-        }),
+        name: Type.Union(skills.map(s => Type.Literal(s.name))),
       }),
       execute: async (_toolCallId, { name }) => {
         const info = infoMap.get(name)
@@ -63,22 +64,48 @@ ${skills.map(s => `- **${s.name}**${s.description ? `: ${s.description}` : ''}`)
           )
         }
 
-        if (!info.loaded) {
-          info.content = stripFrontmatter(await fs.readFile(info.path, 'utf8'))
-          info.loaded = true
+        if (!info.loadPromise) {
+          info.loadPromise = (async () => {
+            try {
+              const raw = await fs.readFile(info.path, 'utf8')
+              info.content = stripFrontmatter(raw)
+            } catch (err) {
+              info.loadPromise = null
+              throw new Error(
+                `Failed to load skill "${info.name}" from ${info.path}: ${err instanceof Error ? err.message : String(err)}`,
+              )
+            }
+          })()
         }
 
+        await info.loadPromise
+
         const dir = path.dirname(info.path)
+        const { files: resources, capped } = await listSkillResources(dir)
 
-        let text = `<skill_content name="${info.name}">
-${info.content.trim()}
+        let text = [
+          `<skill_content name="${info.name}">`,
+          info.content.trim(),
+          '',
+          `Skill directory: ${dir}`,
+          'Relative paths in this skill are relative to the skill directory.',
+        ]
 
-Skill directory: ${dir}
-Relative paths in this skill are relative to the skill directory.
-</skill_content>`
+        if (resources.length) {
+          text.push('', '<skill_resources>')
+          for (const f of resources) {
+            text.push(`  <file>${f}</file>`)
+          }
+          if (capped) {
+            text.push('  <!-- listing capped; more files available -->')
+          }
+          text.push('</skill_resources>')
+        }
+
+        text.push('</skill_content>')
 
         return {
-          content: [{ type: 'text', text }],
+          content: [{ type: 'text', text: text.join('\n') }],
           details: { name: info.name, dir },
         }
       },
@@ -91,4 +118,60 @@ Relative paths in this skill are relative to the skill directory.
       },
     })
   })
+}
+
+const IGNORE_PREFIXES = ['.', '_']
+const IGNORE_NAMES = new Set(['SKILL.md', 'node_modules', '.git'])
+const IGNORE_EXTS = new Set([
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.ico',
+  '.woff',
+  '.woff2',
+  '.ttf',
+  '.eot',
+  '.exe',
+  '.dll',
+  '.so',
+  '.dylib',
+  '.bin',
+])
+
+async function listSkillResources(
+  skillDir: string,
+  opts: { maxFiles?: number; maxDepth?: number } = {},
+): Promise<{ files: string[]; capped: boolean }> {
+  const { maxFiles = 20, maxDepth = 2 } = opts
+  const files: string[] = []
+
+  async function walk(dir: string, rel: string, depth: number) {
+    if (depth > maxDepth || files.length >= maxFiles) return
+
+    const entries = await fs.readdir(dir, { withFileTypes: true })
+
+    const sorted = entries.toSorted((a, b) => a.name.localeCompare(b.name))
+
+    for (const entry of sorted) {
+      if (files.length >= maxFiles) break
+
+      const relPath = rel ? `${rel}/${entry.name}` : entry.name
+
+      if (IGNORE_PREFIXES.some(prefix => entry.name.startsWith(prefix)))
+        continue
+      if (IGNORE_NAMES.has(entry.name)) continue
+
+      if (entry.isDirectory()) {
+        await walk(path.join(dir, entry.name), relPath, depth + 1)
+      } else {
+        if (IGNORE_EXTS.has(path.extname(entry.name).toLowerCase())) continue
+        files.push(relPath)
+      }
+    }
+  }
+
+  await walk(skillDir, '', 0)
+  return { files, capped: files.length >= maxFiles }
 }
