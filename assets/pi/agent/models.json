@@ -12,6 +12,14 @@
           "contextWindow": 202752,
           "maxTokens": 131072,
           "compat": { "maxTokensField": "max_tokens" }
+        },
+        {
+          "id": "kimi-k2.6:cloud",
+          "reasoning": true,
+          "contextWindow": 262144,
+          "maxTokens": 262144,
+          "compat": { "maxTokensField": "max_tokens" },
+          "input": ["text", "image"]
         }
       ]
     }

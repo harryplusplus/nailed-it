@@ -1,41 +1,37 @@
-import { Command } from 'effect/unstable/cli'
-import { Effect, Console } from 'effect'
-import { exec } from '../common.ts'
-import { ChildProcess } from 'effect/unstable/process'
-import { copyFile, Paths } from '../paths.ts'
+import { Command } from 'commander'
+import { linkFile, withGracefulShutdown, createPathMap } from '../common.ts'
+import path from 'node:path'
+import os from 'node:os'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 
-export const pi = Command.make('pi', {}, () =>
-  Effect.gen(function* () {
-    const paths = yield* Paths
+const execAsync = promisify(exec)
 
-    yield* Console.log('Setting up Pi...')
+export const pi = new Command('pi').action(() =>
+  withGracefulShutdown(async signal => {
+    console.log('Setting up Pi...')
+    const { repoRoot } = await createPathMap()
 
-    yield* Console.log('Copying Pi agent configuration files...')
-    yield* copyPiAgentConfig('models.json')
-    yield* copyPiAgentConfig('settings.json')
+    console.log('Linking Pi agent configuration files...')
+    {
+      const srcDir = path.join(repoRoot, 'assets', 'pi', 'agent')
+      const destDir = path.join(os.homedir(), '.pi', 'agent')
+      await linkFile(srcDir, destDir, 'models.json')
+      await linkFile(srcDir, destDir, 'settings.json')
+    }
 
-    yield* Console.log('Checking pi command...')
-    yield* exec(ChildProcess.make`pi --version`, 'pi command failed')
+    console.log('Checking pi command...')
+    await execAsync('pi --version', { signal })
 
-    yield* Console.log('Installing Pi package...')
-    yield* exec(
-      ChildProcess.make`pi install ${paths.repo.pi.package}`,
-      'pi install failed',
-    )
+    console.log('Installing Pi package...')
+    {
+      const packageDir = path.join(repoRoot, 'packages', 'pi')
+      await execAsync(`pi install ${packageDir}`, { signal })
+    }
 
-    yield* Console.log('Checking OLLAMA_API_KEY environment variable...')
-    yield* exec(
-      ChildProcess.make({ shell: true })`sh -c '[ -n "$OLLAMA_API_KEY" ]'`,
-      'OLLAMA_API_KEY is not set',
-    )
+    console.log('Checking OLLAMA_API_KEY environment variable...')
+    await execAsync(`sh -c '[ -n "$OLLAMA_API_KEY" ]'`, { signal })
 
-    yield* Console.log('Pi setup complete!')
+    console.log('Pi setup complete!')
   }),
 )
-
-const copyPiAgentConfig = (fileName: string) =>
-  Effect.gen(function* () {
-    const paths = yield* Paths
-
-    yield* copyFile(paths.repo.pi.agent, paths.global.pi.agent, fileName)
-  })

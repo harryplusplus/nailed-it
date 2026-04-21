@@ -1,38 +1,34 @@
-import { Command } from 'effect/unstable/cli'
-import { Effect, Console } from 'effect'
-import { exec } from '../common.ts'
-import { ChildProcess } from 'effect/unstable/process'
-import { copyFile, linkFile, Paths, removeBrokenSymlinks } from '../paths.ts'
+import { Command } from 'commander'
+import { linkFile, withGracefulShutdown, createPathMap } from '../common.ts'
+import path from 'node:path'
+import os from 'node:os'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
 
-export const opencode = Command.make('opencode', {}, () =>
-  Effect.gen(function* () {
-    const paths = yield* Paths
+const execAsync = promisify(exec)
 
-    yield* Console.log('Setting up OpenCode...')
+export const opencode = new Command('opencode').action(() =>
+  withGracefulShutdown(async signal => {
+    console.log('Setting up OpenCode...')
+    const { repoRoot } = await createPathMap()
 
-    yield* Console.log('Removing broken plugin symlinks...')
-    yield* removeBrokenSymlinks(paths.global.opencode.plugins)
+    console.log('Linking OpenCode agent configuration files...')
+    {
+      const srcDir = path.join(repoRoot, 'assets', 'config', 'opencode')
+      const destDir = path.join(os.homedir(), '.config', 'opencode')
+      await linkFile(srcDir, destDir, 'opencode.jsonc')
+    }
 
-    yield* Console.log('Copying OpenCode configuration files...')
-    yield* copyFile(
-      paths.repo.opencode.config,
-      paths.global.opencode.config,
-      'opencode.jsonc',
-    )
+    console.log('Checking opencode command...')
+    await execAsync('opencode --version', { signal })
 
-    yield* Console.log('Linking OpenCode plugins...')
-    yield* linkFile(
-      paths.repo.opencode.plugins,
-      paths.global.opencode.plugins,
-      'temperature-zero.ts',
-    )
+    console.log('Linking OpenCode plugins...')
+    {
+      const srcDir = path.join(repoRoot, 'packages', 'opencode', 'plugins')
+      const destDir = path.join(os.homedir(), '.config', 'opencode', 'plugins')
+      await linkFile(srcDir, destDir, 'temperature-zero.ts')
+    }
 
-    yield* Console.log('Checking opencode command...')
-    yield* exec(
-      ChildProcess.make`opencode --version`,
-      'opencode command failed',
-    )
-
-    yield* Console.log('OpenCode setup complete!')
+    console.log('OpenCode setup complete!')
   }),
 )

@@ -146,3 +146,6 @@ vite.config.ts.timestamp-*
 
 # Skills
 /.agents/skills/
+
+# Nailed It!
+/.nailed-it/

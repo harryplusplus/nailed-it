@@ -1,17 +1,14 @@
-import { Command } from 'effect/unstable/cli'
-import { Console, Effect } from 'effect'
-import { ChildProcess } from 'effect/unstable/process'
-import { exec } from '../common.ts'
+import { Command } from 'commander'
+import { exec } from 'node:child_process'
+import { promisify } from 'node:util'
+import { withGracefulShutdown } from '../common.ts'
 
-export const submodules = Command.make('submodules', {}, () =>
-  Effect.gen(function* () {
-    yield* Console.log('Updating git submodules...')
+const execAsync = promisify(exec)
 
-    yield* exec(
-      ChildProcess.make`git submodule update --init --recursive`,
-      'Failed to update git submodules',
-    )
-
-    yield* Console.log('Git submodules updated successfully!')
+export const submodules = new Command('submodules').action(() =>
+  withGracefulShutdown(async signal => {
+    console.error('Updating git submodules...')
+    await execAsync('git submodule update --init --recursive', { signal })
+    console.error('Git submodules updated successfully!')
   }),
 )
