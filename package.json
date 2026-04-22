@@ -13,7 +13,6 @@
     "cli": "pnpm run --filter @nailed-it/cli cli"
   },
   "devDependencies": {
-    "@effect/language-service": "^0.85.1",
     "@types/node": "^25.6.0",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",

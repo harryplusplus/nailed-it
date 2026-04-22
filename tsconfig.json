@@ -1,16 +1,9 @@
 {
-  "$schema": "node_modules/@effect/language-service/schema.json",
   "compilerOptions": {
     "types": ["node"],
     "erasableSyntaxOnly": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "skipLibCheck": true,
-    "plugins": [
-      {
-        "name": "@effect/language-service",
-        "allowedDuplicatedPackages": ["effect"]
-      }
-    ]
+    "skipLibCheck": true
   }
 }
