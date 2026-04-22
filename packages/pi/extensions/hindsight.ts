@@ -44,6 +44,17 @@ function stripMemoryTags(text: string): string {
   return text.replace(MEMORY_TAG_PATTERN, '')
 }
 
+function truncate(text: string, maxLen: number): string {
+  const segments = [...new Intl.Segmenter().segment(text)]
+  if (segments.length <= maxLen) return text
+  return (
+    segments
+      .slice(0, maxLen)
+      .map(s => s.segment)
+      .join('') + '...[truncated]'
+  )
+}
+
 function formatCurrentTime(): string {
   const now = new Date()
   const y = now.getUTCFullYear()
@@ -197,16 +208,12 @@ ${text}
                   return { type: c.type, text: c.text }
                 }
 
-                if (c.type === 'thinking') {
-                  return { type: c.type, thinking: c.thinking }
-                }
-
                 if (c.type === 'toolCall') {
                   return {
                     type: 'tool_use',
                     id: c.id,
                     name: c.name,
-                    input: c.arguments,
+                    input: truncate(JSON.stringify(c.arguments), 500),
                   }
                 }
 
@@ -223,10 +230,13 @@ ${text}
             role: 'tool_result',
             tool_use_id: m.toolCallId,
             name: m.toolName,
-            content: m.content
-              .filter(c => c.type === 'text')
-              .map(c => c.text)
-              .join('\n'),
+            content: truncate(
+              m.content
+                .filter(c => c.type === 'text')
+                .map(c => c.text)
+                .join('\n'),
+              500,
+            ),
             is_error: m.isError,
             timestamp: new Date(m.timestamp).toISOString(),
           }
@@ -236,7 +246,7 @@ ${text}
           return {
             role: 'bash_execution',
             command: m.command,
-            output: m.output.slice(0, 2000),
+            output: truncate(m.output, 500),
             exit_code: m.exitCode,
             timestamp: new Date(m.timestamp).toISOString(),
           }
@@ -255,15 +265,13 @@ ${text}
                     .join('\n'),
             timestamp: new Date(m.timestamp).toISOString(),
           }
-
-          return null
         }
       })
       .filter(Boolean)
 
     if (transcript.length === 0) return
 
-    const content = stripMemoryTags(JSON.stringify(transcript, null, 2)).trim()
+    const content = stripMemoryTags(JSON.stringify(transcript)).trim()
     if (!content) return
 
     const documentId = `pi:${sessionId}`
@@ -288,6 +296,7 @@ ${text}
       await client.retain(config.bankId, content, {
         documentId,
         timestamp,
+        context: 'Pi coding agent session',
         updateMode: 'append',
         async: true,
         metadata: {
