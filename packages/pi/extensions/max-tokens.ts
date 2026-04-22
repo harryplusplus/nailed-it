@@ -1,8 +1,11 @@
 import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
 
 export default function (pi: ExtensionAPI) {
-  pi.on('before_provider_request', event => {
+  pi.on('before_provider_request', (event, ctx) => {
+    const model = ctx.model
+    if (!model) return
+
     const payload = event.payload as { max_tokens?: number }
-    payload.max_tokens = 131072
+    payload.max_tokens = model.maxTokens
   })
 }
