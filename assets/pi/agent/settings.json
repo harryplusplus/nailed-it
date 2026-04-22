@@ -1,10 +1,10 @@
 {
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "kimi-k2.6:cloud",
+  "defaultModel": "glm-5.1",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": ["../../repo/nailed-it/packages/pi"],
-  "lastChangelogVersion": "0.68.0",
+  "lastChangelogVersion": "0.68.1",
   "skills": ["!find-skills"],
-  "hideThinkingBlock": true
+  "hideThinkingBlock": false
 }
