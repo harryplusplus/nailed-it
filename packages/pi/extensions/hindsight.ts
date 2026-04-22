@@ -164,6 +164,8 @@ ${text}
       return { systemPrompt: event.systemPrompt + block }
     } catch (e) {
       await debug('recall', 'error:\n', e)
+      const errMsg = e instanceof Error ? e.message : String(e)
+      ctx.ui.notify(`Hindsight recall failed: ${errMsg}`, 'error')
     }
   })
 
@@ -297,6 +299,8 @@ ${text}
       })
     } catch (e) {
       await debug('retain', 'error:\n', e)
+      const errMsg = e instanceof Error ? e.message : String(e)
+      ctx.ui.notify(`Hindsight retain failed: ${errMsg}`, 'error')
     }
   })
 }
