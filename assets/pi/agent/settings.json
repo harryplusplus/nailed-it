@@ -3,8 +3,12 @@
   "defaultModel": "glm-5.1",
   "defaultThinkingLevel": "high",
   "theme": "light",
-  "packages": ["../../repo/nailed-it/packages/pi"],
-  "lastChangelogVersion": "0.68.1",
-  "skills": ["!find-skills"],
+  "packages": [
+    "../../repo/nailed-it/packages/pi"
+  ],
+  "lastChangelogVersion": "0.69.0",
+  "skills": [
+    "!find-skills"
+  ],
   "hideThinkingBlock": false
 }

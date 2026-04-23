@@ -1,5 +1,5 @@
 import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
-import { Static, Type } from '@sinclair/typebox'
+import { Static, Type } from 'typebox'
 import { Text } from '@mariozechner/pi-tui'
 import { parseOllamaApiKey } from '../src/ollama'
 

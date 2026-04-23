@@ -2,7 +2,7 @@ import {
   type ExtensionAPI,
   stripFrontmatter,
 } from '@mariozechner/pi-coding-agent'
-import { Type } from '@sinclair/typebox'
+import { Type } from 'typebox'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import type { Dirent } from 'node:fs'
@@ -63,7 +63,8 @@ export default async function (pi: ExtensionAPI) {
       parameters: Type.Object({
         name: Type.Union(skills.map(s => Type.Literal(s.name))),
       }),
-      execute: async (_toolCallId, { name }) => {
+      execute: async (_toolCallId, params) => {
+        const name: string = params.name
         const info = infoMap.get(name)
         if (!info) {
           const available = skills.map(s => s.name).join(', ')
