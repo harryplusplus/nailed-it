@@ -1,12 +1,12 @@
 {
-  "defaultProvider": "ollama-cloud",
-  "defaultModel": "glm-5.1",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "kimi-k2.6",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
     "../../repo/nailed-it/packages/pi"
   ],
-  "lastChangelogVersion": "0.69.0",
+  "lastChangelogVersion": "0.70.0",
   "skills": [
     "!find-skills"
   ],
