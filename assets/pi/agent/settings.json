@@ -1,6 +1,6 @@
 {
-  "defaultProvider": "ollama-cloud",
-  "defaultModel": "deepseek-v4-flash:cloud",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "kimi-k2.6",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
