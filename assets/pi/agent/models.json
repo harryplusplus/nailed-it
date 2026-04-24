@@ -25,7 +25,7 @@
           "id": "deepseek-v4-flash:cloud",
           "reasoning": true,
           "contextWindow": 1000000,
-          "maxTokens": 384000,
+          "maxTokens": 65536,
           "compat": { "maxTokensField": "max_tokens" }
         }
       ]
