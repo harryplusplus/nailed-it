@@ -152,6 +152,7 @@ export default async function (pi: ExtensionAPI) {
         budget: config.recallBudget,
         maxTokens: config.recallMaxTokens,
         types: ['world', 'experience', 'observation'],
+        queryTimestamp: new Date().toISOString(),
       })
 
       const { results } = response
