@@ -597,6 +597,16 @@ name = "dev-cli"
 version = "0.0.0"
 source = { editable = "python-packages/dev-cli" }
 
+[package.dev-dependencies]
+dev = [
+    { name = "typer" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [{ name = "typer", specifier = ">=0.24.1" }]
+
 [[package]]
 name = "distro"
 version = "1.9.0"

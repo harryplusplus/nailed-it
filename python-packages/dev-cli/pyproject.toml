@@ -7,3 +7,8 @@ dev-cli = "dev_cli.cli:main"
 
 [tool.uv]
 package = true
+
+[dependency-groups]
+dev = [
+    "typer>=0.24.1",
+]
