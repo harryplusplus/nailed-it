@@ -4,7 +4,7 @@ Harry 개인 AI 인프라. Hindsight 장기기억 + Pi 코딩 에이전트 + 각
 
 ```sh
 # Hindsight API 서버 실행 (tmux)
-./hs-api.sh
+tmux new -s hs-api uv run --env-file .env hindsight-api
 
 # 웹 대시보드
 tmux new -s hs-web 'pnpm run --filter @nailed-it/hs-web start'
