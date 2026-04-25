@@ -53,6 +53,7 @@
           "maxTokens": 384000,
           "compat": {
             "supportsReasoningEffort": true,
+            "requiresReasoningContentOnAssistantMessages": true,
             "reasoningEffortMap": {
               "minimal": "low",
               "low": "low",

@@ -3,8 +3,12 @@
   "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
   "theme": "light",
-  "packages": ["../../repo/nailed-it/packages/pi"],
+  "packages": [
+    "../../repo/nailed-it/packages/pi"
+  ],
   "lastChangelogVersion": "0.70.2",
-  "skills": ["!find-skills"],
+  "skills": [
+    "!find-skills"
+  ],
   "hideThinkingBlock": false
 }
