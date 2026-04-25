@@ -9,6 +9,9 @@ dependencies = ["hindsight-api-slim>=0.5.3", "sentence-transformers>=5.4.1"]
 [dependency-groups]
 dev = ["pyright>=1.1.409", "ruff>=0.15.12"]
 
+[tool.uv.workspace]
+members = ["python-packages/*"]
+
 [tool.uv.sources]
 hindsight-api-slim = { path = "external/hindsight/hindsight-api-slim", editable = true }
 

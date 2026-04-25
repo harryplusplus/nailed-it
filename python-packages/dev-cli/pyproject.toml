@@ -1,0 +1,9 @@
+[project]
+name = "dev-cli"
+version = "0.0.0"
+
+[project.scripts]
+dev-cli = "dev_cli.cli:main"
+
+[tool.uv]
+package = true
