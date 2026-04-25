@@ -1,13 +1,28 @@
 [project]
 name = "nailed-it"
 version = "0.0.0"
-description = "Harry's personal AI assistant"
+description = "Harry's personal AI assistant environment"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = [
-    "hindsight-api-slim>=0.5.3",
-    "sentence-transformers>=5.4.1",
-]
+dependencies = ["hindsight-api-slim>=0.5.3", "sentence-transformers>=5.4.1"]
+
+[dependency-groups]
+dev = ["pyright>=1.1.409", "ruff>=0.15.12"]
 
 [tool.uv.sources]
 hindsight-api-slim = { path = "external/hindsight/hindsight-api-slim", editable = true }
+
+[tool.pyright]
+typeCheckingMode = "strict"
+deprecateTypingAliases = true
+reportMissingModuleSource = "error"
+reportCallInDefaultInitializer = "error"
+reportImplicitOverride = "error"
+reportImplicitStringConcatenation = "error"
+reportImportCycles = "error"
+reportMissingSuperCall = "error"
+reportPropertyTypeMismatch = "error"
+reportUninitializedInstanceVariable = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportUnreachable = "error"
+reportUnusedCallResult = "error"
