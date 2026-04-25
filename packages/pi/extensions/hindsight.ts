@@ -305,7 +305,7 @@ ${text}
           cwd: ctx.cwd,
           message_count: String(transcript.length),
         },
-        tags: ['pi-session'],
+        tags: ['pi'],
       })
     } catch (e) {
       await debug('retain', 'error:\n', e)
