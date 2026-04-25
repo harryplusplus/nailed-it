@@ -43,6 +43,25 @@
           "compat": { "maxTokensField": "max_tokens" }
         }
       ]
+    },
+    "opencode-go": {
+      "models": [
+        {
+          "id": "deepseek-v4-flash",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 384000,
+          "compat": {
+            "supportsReasoningEffort": true,
+            "reasoningEffortMap": {
+              "minimal": "low",
+              "low": "low",
+              "medium": "medium",
+              "high": "max"
+            }
+          }
+        }
+      ]
     }
   }
 }
