@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from dev_cli.common import REPO_ROOT, link_file
+from dev_cli.common import REPO_ROOT, link_dir, link_file
 
 
 def _run(
@@ -50,6 +50,12 @@ def setup_hermes_config() -> None:
     src_dir = REPO_ROOT / "assets" / "hermes" / "hindsight"
     dest_dir = Path.home() / ".hermes" / "hindsight"
     link_file(src_dir, dest_dir, "config.json")
+
+    print("Linking Hermes plugin...")
+    link_dir(
+        REPO_ROOT / "python-packages" / "nailed-it-hermes" / "src" / "nailed_it_hermes",
+        Path.home() / ".hermes" / "plugins" / "nailed_it_hermes",
+    )
 
     print("Linking hermes command...")
     src_dir = hermes_dir / "venv" / "bin"

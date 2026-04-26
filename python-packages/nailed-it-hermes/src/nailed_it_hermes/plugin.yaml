@@ -1,0 +1,6 @@
+name: nailed-it-hermes
+version: 0.0.0
+description: "A plugin for Nailed It that provides a pre_api_request hook to customize API parameters (temperature, reasoning_effort, etc.)"
+author: nailed-it
+hooks:
+  - pre_api_request

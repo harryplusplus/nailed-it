@@ -10,6 +10,7 @@ resolution-markers = [
 members = [
     "dev-cli",
     "nailed-it",
+    "nailed-it-hermes",
 ]
 
 [[package]]
@@ -1884,6 +1885,11 @@ dev = [
     { name = "pyright", specifier = ">=1.1.409" },
     { name = "ruff", specifier = ">=0.15.12" },
 ]
+
+[[package]]
+name = "nailed-it-hermes"
+version = "0.0.0"
+source = { virtual = "python-packages/nailed-it-hermes" }
 
 [[package]]
 name = "networkx"
