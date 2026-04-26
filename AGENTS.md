@@ -5,6 +5,7 @@
 Python 파일을 변경한 뒤에는 반드시 ruff와 pyright를 실행해:
 
 ```bash
+uv run ruff format <path/to/file.py>        # 포맷팅
 uv run ruff check --fix <path/to/file.py>   # 린트 + 자동 수정
 uv run pyright <path/to/file.py>            # 타입 체크
 ```
