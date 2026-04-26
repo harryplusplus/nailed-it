@@ -16,6 +16,7 @@ def git_submodules() -> None:
 
 @app.command()
 def hermes_config() -> None:
+    """Link hermes config and binary, check hermes command."""
     setup_hermes_config()
 
 
@@ -27,9 +28,11 @@ def opencode_config() -> None:
 
 @app.command()
 def pg_config() -> None:
+    """Build and install PostgreSQL extensions (VectorChord, pg_tokenizer, bm25)."""
     setup_pg_config()
 
 
 @app.command()
 def pi_config() -> None:
+    """Link pi agent config, install pi package, check environment."""
     setup_pi_config()

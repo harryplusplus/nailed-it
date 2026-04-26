@@ -17,7 +17,7 @@ hindsight-api-slim = { path = "external/hindsight/hindsight-api-slim", editable 
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D", "INP001", "PLW1510", "S310", "S603", "S607", "T201"]
+ignore = ["D", "INP001", "PLW1510", "S310", "S602", "S603", "S607", "T201"]
 
 [tool.pyright]
 typeCheckingMode = "strict"
@@ -25,7 +25,6 @@ deprecateTypingAliases = true
 reportMissingModuleSource = "error"
 reportCallInDefaultInitializer = "error"
 reportImplicitOverride = "error"
-reportImplicitStringConcatenation = "error"
 reportImportCycles = "error"
 reportMissingSuperCall = "error"
 reportPropertyTypeMismatch = "error"
