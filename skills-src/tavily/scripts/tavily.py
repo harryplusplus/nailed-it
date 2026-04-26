@@ -7,6 +7,7 @@
 # ///
 
 import contextlib
+import enum
 import json
 import os
 import sys
@@ -14,6 +15,12 @@ from typing import Annotated
 
 import httpx
 import typer
+
+
+class _Depth(enum.StrEnum):
+    BASIC = "basic"
+    ADVANCED = "advanced"
+
 
 API_BASE = "https://api.tavily.com"
 
@@ -57,9 +64,9 @@ def search(
         typer.Option("--max-results", "-n", min=1, max=20, help="최대 결과 개수"),
     ] = 5,
     search_depth: Annotated[
-        str,
+        _Depth,
         typer.Option("--search-depth", "-d", help="검색 깊이 (basic 또는 advanced)"),
-    ] = "basic",
+    ] = _Depth.BASIC,
     *,
     include_answer: Annotated[
         bool,
@@ -89,9 +96,9 @@ def search(
 def extract(
     urls: Annotated[list[str], typer.Argument(help="추출할 URL 목록")],
     extract_depth: Annotated[
-        str,
+        _Depth,
         typer.Option("--extract-depth", "-d", help="추출 깊이 (basic 또는 advanced)"),
-    ] = "basic",
+    ] = _Depth.BASIC,
 ) -> None:
     key = _get_api_key()
     payload = {
