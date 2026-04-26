@@ -1,6 +1,8 @@
 # Nailed It!
 
-Harry 개인 AI 인프라. Hindsight 장기기억 + Pi 코딩 에이전트 + 각종 도구들.
+해냈다. 내 AI 환경.
+
+Hindsight 장기기억 + Pi 코딩 에이전트 + 각종 도구들.
 
 ```sh
 # Hindsight API 서버 실행 (tmux)
@@ -13,55 +15,63 @@ tmux new -s hs-web pnpm hindsight-control-plane
 ## 구조
 
 ```
-packages/
-├── hs-web/          # Hindsight 웹 대시보드
-├── pi/              # Pi 코딩 에이전트 확장 모음
-│   └── extensions/
-│       ├── hindsight.ts   # 장기기억 (retain/recall)
-│       ├── max-tokens.ts  # 모델별 max_tokens 설정
-│       └── ...            # fd, rg, gh 등 도구 확장
-├── cli/             # CLI 도구
-└── opencode/        # OpenCode 플러그인
+python-packages/
+└── dev-cli/            # CLI 도구 (Python)
+    └── src/dev_cli/commands/
+        ├── setup/      # 개발 환경 설정
+        │   ├── git_submodules.py   # 서브모듈 초기화
+        │   ├── hermes_config.py    # Hermes Agent 설정
+        │   ├── opencode_config.py  # OpenCode 설정
+        │   ├── pg_config.py        # PostgreSQL 확장 설치
+        │   └── pi_config.py        # Pi 에이전트 설정
+        └── models_dev.py           # models.dev API 조회
 
-scripts/
-└── test_retain_models.py  # Hindsight retain용 모델 벤치마크
+packages/
+├── hs-web/             # Hindsight 웹 대시보드
+├── pi/                 # Pi 코딩 에이전트 확장 모음
+│   └── extensions/
+│       ├── hindsight.ts    # 장기기억 (retain/recall)
+│       ├── max-tokens.ts   # 모델별 max_tokens 설정
+│       └── ...             # fd, rg, gh 등 도구 확장
+└── opencode/           # OpenCode 플러그인
 
 external/
-├── hindsight/       # Hindsight API (서브모듈)
-├── hermes-agent/    # Hermes 에이전트
-└── VectorChord/     # 벡터 검색 확장
+├── hindsight/          # Hindsight API (서브모듈)
+├── hermes-agent/       # Hermes 에이전트 (서브모듈)
+├── VectorChord/        # 벡터 검색 pg extension
+├── VectorChord-bm25/   # BM25 pg extension
+└── pg_tokenizer.rs/    # 토크나이저 pg extension
 ```
 
-## Hindsight Retain 모델 벤치마크
-
-Hindsight가 대화에서 사실(fact)을 추출할 때 쓰는 LLM 모델 성능 비교.
-
-### deepseek-v4-flash:cloud vs gpt-oss:20b
-
-| 항목 | deepseek-v4-flash:cloud | gpt-oss:20b |
-|------|------------------------|-------------|
-| **평균 응답 시간** | 67.1초 | **23.7초** |
-| **평균 fact 수** | 3.7개 | **5.7개** |
-| **한국어 처리** | ✅ **한국어 유지** | ❌ **영어로 번역함** |
-| **토큰 효율** | 평균 5,659 tokens | 평균 **5,004 tokens** |
-
-### 결론
-
-- **한국어 쓰는 프로젝트면 deepseek-v4-flash:cloud.** gpt-oss:20b는 시스템 프롬프트에 "입력 언어로 출력하라"고 해도 무시하고 영어로 번역해버림. retain 품질에 치명적.
-- **속도는 gpt-oss:20b가 3배 빠름.** 영어 전용이거나 속도가 중요하면 고려할 만함.
-- **JSON 안정성은 deepseek-v4-flash:cloud.** 항상 깔끔한 JSON을 바로 반환해서 추가 파싱 로직이 필요 없음.
-
-### 테스트해보기
+## CLI 도구
 
 ```sh
-# 기본 모델 목록으로 테스트
-python3 scripts/test_retain_models.py
+# 전체 CLI
+uv run dev-cli --help
 
-# 특정 모델만 테스트
-python3 scripts/test_retain_models.py deepseek-v4-flash:cloud gpt-oss:20b
+# 개발 환경 설정
+uv run dev-cli setup --help
+
+# 서브모듈 클론 및 업데이트
+uv run dev-cli setup git-submodules
+
+# Hermes Agent (venv 생성 → config 링크 → 명령어 링크)
+uv run dev-cli setup hermes-config
+
+# OpenCode 설정 파일 링크
+uv run dev-cli setup opencode-config
+
+# PostgreSQL 확장 빌드 및 설치 (VectorChord, pg_tokenizer, bm25)
+uv run dev-cli setup pg-config
+
+# Pi 에이전트 설정 파일 링크 + 패키지 설치
+uv run dev-cli setup pi-config
+
+# models.dev API에서 프로바이더/모델 정보 조회
+uv run dev-cli models-dev providers
+uv run dev-cli models-dev models openai
+uv run dev-cli models-dev model openai gpt-4o
 ```
-
-결과는 `scripts/retain_benchmark_results.json`에 저장됨.
 
 ## 환경변수
 
