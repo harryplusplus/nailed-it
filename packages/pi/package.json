@@ -30,9 +30,8 @@
       "extensions/max-tokens.ts",
       "extensions/notify.ts",
       "extensions/rg.ts",
-      "extensions/temperature-zero.ts",
-      "extensions/web-fetch.ts",
-      "extensions/web-search.ts"
+      "extensions/tavily.ts",
+      "extensions/temperature-zero.ts"
     ]
   }
 }
