@@ -11,13 +11,21 @@ uv run pyright <path/to/file.py>            # 타입 체크
 
 에러나 경고는 커밋 전에 다 고쳐야 한다.
 
-## TypeScript & package.json
+## TypeScript
 
-TypeScript나 package.json 파일을 변경한 후에는 반드시 oxfmt와 oxlint를 돌려라:
+TypeScript 파일을 변경한 후에는 반드시 oxfmt와 oxlint를 돌려라:
 
 ```bash
-pnpm oxfmt <path/to/file.ts> <path/to/package.json>     # 포맷팅
-pnpm oxlint <path/to/file.ts> <path/to/package.json>    # 린트 (타입 체크 포함)
+pnpm oxfmt <path/to/file.ts>     # 포맷팅
+pnpm oxlint <path/to/file.ts>    # 린트 (타입 체크 포함)
+```
+
+## package.json
+
+package.json 파일을 변경한 후에는 반드시 oxlint를 돌려라:
+
+```bash
+pnpm oxlint <path/to/package.json>    # 린트 (타입 체크 포함)
 ```
 
 에러나 경고는 커밋 전에 다 고쳐야 한다.
