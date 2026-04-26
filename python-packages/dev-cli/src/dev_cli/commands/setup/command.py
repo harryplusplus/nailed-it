@@ -9,25 +9,25 @@ app = typer.Typer(no_args_is_help=True)
 
 
 @app.command()
-def git_submodules():
+def git_submodules() -> None:
     setup_git_submodules()
 
 
 @app.command()
-def hermes():
+def hermes() -> None:
     setup_hermes_config()
 
 
 @app.command()
-def opencode():
+def opencode() -> None:
     setup_opencode_config()
 
 
 @app.command()
-def pg():
+def pg() -> None:
     setup_pg_config()
 
 
 @app.command()
-def pi():
+def pi() -> None:
     setup_pi_config()

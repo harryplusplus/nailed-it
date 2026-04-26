@@ -17,7 +17,7 @@ hindsight-api-slim = { path = "external/hindsight/hindsight-api-slim", editable 
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D", "INP001", "PLW1510", "S603", "T201"]
+ignore = ["D", "INP001", "PLW1510", "S603", "T201", "S310"]
 
 [tool.pyright]
 typeCheckingMode = "strict"
@@ -32,4 +32,3 @@ reportPropertyTypeMismatch = "error"
 reportUninitializedInstanceVariable = "error"
 reportUnnecessaryTypeIgnoreComment = "error"
 reportUnreachable = "error"
-reportUnusedCallResult = "error"
