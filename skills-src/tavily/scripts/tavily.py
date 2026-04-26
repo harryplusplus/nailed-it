@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.14"
 # dependencies = [
 #   "httpx>=0.28.1",
 #   "typer>=0.25.0",
@@ -60,7 +60,8 @@ def search(
         str,
         typer.Option("--search-depth", "-d", help="검색 깊이 (basic 또는 advanced)"),
     ] = "basic",
-    include_answer: Annotated[  # noqa: FBT002
+    *,
+    include_answer: Annotated[
         bool,
         typer.Option("--include-answer", "-a", help="AI 요약 포함 여부"),
     ] = False,
