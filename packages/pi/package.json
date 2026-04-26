@@ -30,7 +30,6 @@
       "extensions/max-tokens.ts",
       "extensions/notify.ts",
       "extensions/rg.ts",
-      "extensions/tavily.ts",
       "extensions/temperature-zero.ts"
     ]
   }
