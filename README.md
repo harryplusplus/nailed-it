@@ -49,6 +49,16 @@ packages/
 │       └── ...             # fd, rg, gh 등 도구 확장
 └── opencode/               # OpenCode 플러그인
 
+skills-src/
+├── tavily/                      # Tavily 검색 및 추출
+├── web-search/                  # 웹 검색
+├── web-fetch/                   # 웹 페이지 페치
+├── memory/                      # Hindsight 장기기억
+├── agent-skills-dev/            # 스킬 개발/스캐폴드
+├── agent-skills-review/         # 스킬 검수
+├── agent-skills-python-dev/     # 스킬 Python 품질 검사
+└── agent-skills-typescript-dev/ # 스킬 TypeScript 품질 검사
+
 external/
 ├── hindsight/          # Hindsight API (서브모듈)
 ├── hermes-agent/       # Hermes Agent (서브모듈)
