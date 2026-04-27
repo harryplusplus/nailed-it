@@ -23,6 +23,7 @@ type BashExecutionMessage = Extract<AgentMessage, { role: 'bashExecution' }>
 type RecallDetails = {
   durationMs: number
   results: { type?: string | null; text: string }[]
+  query: string
 }
 
 const DEFAULT_CONFIG = {
@@ -33,7 +34,7 @@ const DEFAULT_CONFIG = {
   autoRetain: true,
   recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
-  recallUserTurns: 1,
+  recallUserTurns: 3,
   recallMaxQueryChars: 800,
 }
 
@@ -69,6 +70,10 @@ export default async function (pi: ExtensionAPI) {
 
     if (expanded && details.results.length > 0) {
       text += '\n'
+      if (details.query) {
+        text += theme.fg('accent', 'Query:\n')
+        text += theme.fg('dim', details.query) + '\n'
+      }
       for (const r of details.results) {
         const type = r.type ? theme.fg('warning', `[${r.type}] `) : ''
         text += `\n${type}${theme.fg('dim', r.text)}`
@@ -411,7 +416,7 @@ async function performRecall(
   const durationMs = Date.now() - startTime
   const { results } = response
   if (results.length === 0) {
-    return { text: null, details: { durationMs, results: [] } }
+    return { text: null, details: { durationMs, results: [], query } }
   }
 
   const text = recallResponseToPromptString(response)
@@ -420,6 +425,7 @@ async function performRecall(
     details: {
       durationMs,
       results: results.map(r => ({ type: r.type, text: r.text })),
+      query,
     },
   }
 }
