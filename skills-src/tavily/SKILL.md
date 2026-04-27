@@ -23,21 +23,21 @@ metadata:
 ### 검색
 
 ```bash
-uv run scripts/tavily.py search "검색어"
+./scripts/tavily.py search "검색어"
 ```
 
 ```bash
-uv run scripts/tavily.py search "검색어" --max-results 10 --search-depth advanced --include-answer
+./scripts/tavily.py search "검색어" --max-results 10 --search-depth advanced --include-answer
 ```
 
 ### 웹 페이지 추출
 
 ```bash
-uv run scripts/tavily.py extract "https://example.com"
+./scripts/tavily.py extract "https://example.com"
 ```
 
 ```bash
-uv run scripts/tavily.py extract "https://a.com" "https://b.com" --extract-depth advanced
+./scripts/tavily.py extract "https://a.com" "https://b.com" --extract-depth advanced
 ```
 
 ## 옵션
