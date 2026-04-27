@@ -31,3 +31,25 @@ export function formatDuration(ms: number): string {
   }
   return `${milliseconds}ms`
 }
+
+export function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  try {
+    return JSON.stringify(error)
+  } catch {
+    return String(error)
+  }
+}
+
+export function truncateText(text: string, maxLen: number): string {
+  const segments = [...new Intl.Segmenter().segment(text)]
+  if (segments.length <= maxLen) return text
+  return (
+    segments
+      .slice(0, maxLen)
+      .map(s => s.segment)
+      .join('') + '...[truncated]'
+  )
+}

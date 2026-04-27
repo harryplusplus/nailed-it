@@ -3,120 +3,144 @@ import type {
   ExtensionAPI,
   ExtensionContext,
 } from '@mariozechner/pi-coding-agent'
-import { Box, Text } from '@mariozechner/pi-tui'
+import { Box, Text, TUI } from '@mariozechner/pi-tui'
 import {
   Budget,
   HindsightClient,
   recallResponseToPromptString,
 } from '@vectorize-io/hindsight-client'
-import { formatDuration } from '../src/common'
+import { formatDuration, formatError } from '../src/common'
+import {
+  AssistantMessage,
+  TextContent,
+  ToolResultMessage,
+  UserMessage,
+} from '@mariozechner/pi-ai'
 
 type AgentMessage = AgentEndEvent['messages'][number]
-
-interface Config {
-  bankId: string
-  autoRecall: boolean
-  autoRetain: boolean
-  recallBudget: Budget
-  recallMaxTokens: number
-  apiUrl: string
-  apiKey?: string
+type BashExecutionMessage = Extract<AgentMessage, { role: 'bashExecution' }>
+type RecallDetails = {
+  durationMs: number
+  results: { type?: string | null; text: string }[]
 }
 
-const DEFAULT_CONFIG: Config = {
+const DEFAULT_CONFIG = {
   apiUrl: 'http://localhost:8888',
+  apiKey: undefined,
   bankId: 'openclaw',
   autoRecall: true,
   autoRetain: true,
-  recallBudget: 'mid',
+  recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
 }
 
-const RECALL_MESSAGE_TYPE = 'hindsight-recall'
-const RECALL_SPINNER_KEY = 'hindsight-recall'
+type Config = typeof DEFAULT_CONFIG
+
+const RECALL_KEY = 'hindsight-recall'
+
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 const SPINNER_INTERVAL_MS = 80
 
-const MEMORY_TAG_PATTERN = /<hindsight_memories>[\s\S]*?<\/hindsight_memories>/g
+export default async function (pi: ExtensionAPI) {
+  const config = loadConfig()
+  const client = new HindsightClient({
+    baseUrl: config.apiUrl,
+    apiKey: config.apiKey,
+  })
 
-function stripMemoryTags(text: string): string {
-  return text.replace(MEMORY_TAG_PATTERN, '')
-}
+  let sessionId = ''
 
-function truncate(text: string, maxLen: number): string {
-  const segments = [...new Intl.Segmenter().segment(text)]
-  if (segments.length <= maxLen) return text
-  return (
-    segments
-      .slice(0, maxLen)
-      .map(s => s.segment)
-      .join('') + '...[truncated]'
-  )
-}
+  pi.on('session_start', async (_event, ctx) => {
+    sessionId = ctx.sessionManager.getSessionId()
+  })
 
-function formatCurrentTime(): string {
-  const now = new Date()
-  const y = now.getUTCFullYear()
-  const m = String(now.getUTCMonth() + 1).padStart(2, '0')
-  const d = String(now.getUTCDate()).padStart(2, '0')
-  const h = String(now.getUTCHours()).padStart(2, '0')
-  const min = String(now.getUTCMinutes()).padStart(2, '0')
-  return `${y}-${m}-${d} ${h}:${min} UTC`
-}
+  pi.registerMessageRenderer(RECALL_KEY, (message, { expanded }, theme) => {
+    const details = message.details as RecallDetails
 
-function registerRecallRenderer(pi: ExtensionAPI): void {
-  pi.registerMessageRenderer(
-    RECALL_MESSAGE_TYPE,
-    (message, { expanded }, theme) => {
-      const details = message.details as
-        | {
-            count: number
-            durationMs: number
-            results: Array<{ id: string; text: string; type?: string | null }>
-            query: string
-          }
-        | undefined
+    const count = details.results.length
+    const duration = details.durationMs
 
-      const count = details?.count ?? 0
-      const duration = details?.durationMs ?? 0
+    let text = theme.fg('accent', '🧠 Hindsight Recall')
+    text += theme.fg('success', ` ${count} found`)
+    text += theme.fg('dim', ` (${formatDuration(duration)})`)
 
-      let text = theme.fg('accent', '🧠 Hindsight Recall  ')
-      text += theme.fg('success', `${count}개`)
-      text += theme.fg('dim', ` · ${formatDuration(duration)}`)
-
-      if (expanded && details && details.results.length > 0) {
-        text += '\n' + theme.fg('dim', '─'.repeat(50))
-        for (const r of details.results) {
-          const typeStr = r.type ? theme.fg('warning', `[${r.type}] `) : ''
-          const snippet = r.text.replace(/\n/g, ' ').slice(0, 60)
-          text += `\n  ${typeStr}${theme.fg('dim', snippet)}`
-        }
+    if (expanded && details.results.length > 0) {
+      text += '\n'
+      for (const r of details.results) {
+        const type = r.type ? theme.fg('warning', `[${r.type}] `) : ''
+        text += `\n${type}${theme.fg('dim', r.text)}`
       }
+    }
 
-      const box = new Box(1, 1, t => theme.bg('customMessageBg', t))
-      box.addChild(new Text(text, 0, 0))
-      return box
-    },
-  )
-}
+    const box = new Box(1, 1, t => theme.bg('customMessageBg', t))
+    box.addChild(new Text(text, 0, 0))
+    return box
+  })
 
-function registerRecallFilter(pi: ExtensionAPI): void {
+  pi.on('before_agent_start', async (event, ctx) => {
+    if (!config.autoRecall) return
+
+    const query = event.prompt.trim()
+    if (!query) return
+
+    using _spinner = startRecallSpinner(ctx)
+
+    // TODO: recall timeout & cancellation
+    try {
+      const result = await performRecall(client, config, query)
+
+      pi.sendMessage({
+        customType: RECALL_KEY,
+        content: `Recalled ${result.details.results.length} memories in ${formatDuration(result.details.durationMs)}`,
+        display: true,
+        details: result.details,
+      })
+
+      if (!result.text) return
+
+      return {
+        systemPrompt: event.systemPrompt + buildMemoryBlock(result.text),
+      }
+    } catch (err) {
+      ctx.ui.notify(`Hindsight recall failed: ${formatError(err)}`, 'error')
+    }
+  })
+
   pi.on('context', async event => {
-    const filtered = event.messages.filter(m => {
-      if (m.role === 'custom' && m.customType === RECALL_MESSAGE_TYPE) {
-        return false
-      }
-      return true
-    })
+    const filtered = filterRecallMessages(event.messages)
     return { messages: filtered }
   })
+
+  pi.on('agent_end', async (event, ctx) => {
+    if (!config.autoRetain) return
+
+    // TODO: retain timeout & cancellation
+    try {
+      await performRetain(client, config, sessionId, event.messages, ctx.cwd)
+    } catch (err) {
+      ctx.ui.notify(`Hindsight retain failed: ${formatError(err)}`, 'error')
+    }
+  })
+}
+
+function filterRecallMessages(messages: AgentMessage[]): AgentMessage[] {
+  return messages.filter(m => {
+    if (m.role === 'custom' && m.customType === RECALL_KEY) {
+      return false
+    }
+    return true
+  })
+}
+
+function loadConfig(): Config {
+  return { ...DEFAULT_CONFIG }
 }
 
 function startRecallSpinner(ctx: ExtensionContext): Disposable {
   let frameIndex = 0
-  let tuiRef: { requestRender: () => void } | null = null
+  let tuiRef: TUI | null = null
 
-  ctx.ui.setWidget(RECALL_SPINNER_KEY, (tui, theme) => {
+  ctx.ui.setWidget(RECALL_KEY, (tui, theme) => {
     tuiRef = tui
     return {
       render: () => [
@@ -137,20 +161,194 @@ function startRecallSpinner(ctx: ExtensionContext): Disposable {
   return {
     [Symbol.dispose]() {
       clearInterval(interval)
-      ctx.ui.setWidget(RECALL_SPINNER_KEY, undefined)
+      ctx.ui.setWidget(RECALL_KEY, undefined)
     },
   }
+}
+
+function stripMemoryBlock(text: string): string {
+  return text.replace(/<hindsight_memories>[\s\S]*?<\/hindsight_memories>/g, '')
+}
+
+function formatCurrentTime(): string {
+  const now = new Date()
+  const y = now.getUTCFullYear()
+  const m = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(now.getUTCDate()).padStart(2, '0')
+  const h = String(now.getUTCHours()).padStart(2, '0')
+  const min = String(now.getUTCMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min} UTC`
+}
+
+function buildMemoryBlock(text: string): string {
+  return [
+    '',
+    '',
+    '<hindsight_memories>',
+    'Relevant memories from past conversations (prioritize recent when conflicting). Only use memories that are directly useful to continue this conversation; ignore the rest:',
+    `Current time: ${formatCurrentTime()}`,
+    '',
+    text,
+    '</hindsight_memories>',
+  ].join('\n')
+}
+
+function buildTranscript(messages: AgentMessage[]): string {
+  const parts: string[] = []
+
+  for (const m of messages) {
+    if (m.role === 'user') {
+      parts.push(normalizeUserMessage(m))
+    } else if (m.role === 'assistant') {
+      parts.push(normalizeAssistantMessage(m))
+    } else if (m.role === 'toolResult') {
+      parts.push(normalizeToolResultMessage(m))
+    } else if (m.role === 'bashExecution' && !m.excludeFromContext) {
+      parts.push(normalizeBashExecutionMessage(m))
+    }
+  }
+
+  return parts.join('\n\n')
+}
+
+function normalizeUserMessage(message: UserMessage): string {
+  const parts: string[] = []
+
+  const timestamp = formatTimestamp(message.timestamp)
+  parts.push(`User (timestamp: ${timestamp})`)
+
+  if (typeof message.content === 'string') {
+    const text = message.content.trim()
+    if (text) {
+      parts.push('<text>')
+      parts.push(text)
+      parts.push('</text>')
+    }
+  } else {
+    const text = message.content
+      .filter((c): c is TextContent => c.type === 'text')
+      .map(c => c.text.trim())
+      .filter(t => t)
+      .join('\n')
+    if (text) {
+      parts.push('<text>')
+      parts.push(text)
+      parts.push('</text>')
+    }
+  }
+
+  const text = parts.join('\n')
+  return normalizeNewlines(text)
+}
+
+function normalizeAssistantMessage(message: AssistantMessage): string {
+  const parts: string[] = []
+
+  const timestamp = formatTimestamp(message.timestamp)
+  parts.push(
+    `Assistant (${message.provider}/${message.model}, timestamp: ${timestamp})`,
+  )
+  parts.push(`Stop reason: ${message.stopReason}`)
+
+  if (message.stopReason === 'error' || message.stopReason === 'aborted') {
+    const errorMessage = message.errorMessage?.trim()
+    if (errorMessage) {
+      parts.push('<error>')
+      parts.push(errorMessage)
+      parts.push('</error>')
+    }
+  } else if (message.stopReason === 'length') {
+    parts.push(`Response was cut off because it exceeded the maximum length.`)
+  }
+
+  for (const c of message.content) {
+    if (c.type === 'text') {
+      const text = c.text.trim()
+      if (text) {
+        parts.push('<text>')
+        parts.push(text)
+        parts.push('</text>')
+      }
+    } else if (c.type === 'toolCall') {
+      parts.push(`Tool call: ${c.name}(${JSON.stringify(c.arguments)})`)
+    }
+  }
+
+  const text = parts.join('\n')
+  return normalizeNewlines(text)
+}
+
+function normalizeToolResultMessage(message: ToolResultMessage): string {
+  const parts: string[] = []
+
+  const timestamp = formatTimestamp(message.timestamp)
+  parts.push(
+    `Tool result (${message.toolName}, error: ${message.isError}, timestamp: ${timestamp})`,
+  )
+
+  const content = message.content
+    .filter((c): c is TextContent => c.type === 'text')
+    .map(c => c.text.trim())
+    .filter(t => t)
+    .join('\n')
+  if (content) {
+    parts.push('<content>')
+    parts.push(content)
+    parts.push('</content>')
+  }
+
+  const text = parts.join('\n')
+  return normalizeNewlines(text)
+}
+
+function normalizeBashExecutionMessage(message: BashExecutionMessage): string {
+  const parts: string[] = []
+
+  const timestamp = formatTimestamp(message.timestamp)
+  if (message.cancelled) {
+    parts.push(`Bash execution (cancelled, timestamp: ${timestamp})`)
+  } else if (message.exitCode !== undefined) {
+    parts.push(
+      `Bash execution (exit_code: ${message.exitCode}, timestamp: ${timestamp})`,
+    )
+  } else {
+    parts.push(`Bash execution (timestamp: ${timestamp})`)
+  }
+
+  const command = message.command.trim()
+  if (command) {
+    parts.push('<command>')
+    parts.push(command)
+    parts.push('</command>')
+  }
+
+  const output = message.output.trim()
+  if (output) {
+    if (message.truncated) {
+      parts.push('> Output field contains only the tail portion.')
+    }
+    parts.push('<output>')
+    parts.push(output)
+    parts.push('</output>')
+  }
+
+  const text = parts.join('\n')
+  return normalizeNewlines(text)
+}
+
+function normalizeNewlines(text: string): string {
+  return text.replace(/\n{2,}/g, '\n')
+}
+
+function formatTimestamp(timestamp: number): string {
+  return new Date(timestamp).toISOString()
 }
 
 async function performRecall(
   client: HindsightClient,
   config: Config,
   query: string,
-): Promise<{
-  text: string
-  results: Array<{ id: string; text: string; type?: string | null }>
-  durationMs: number
-} | null> {
+): Promise<{ text: string | null; details: RecallDetails }> {
   const startTime = Date.now()
   const response = await client.recall(config.bankId, query, {
     budget: config.recallBudget,
@@ -158,130 +356,21 @@ async function performRecall(
     types: ['world', 'experience', 'observation'],
     queryTimestamp: new Date().toISOString(),
   })
+
   const durationMs = Date.now() - startTime
   const { results } = response
-
-  if (results.length === 0) return null
+  if (results.length === 0) {
+    return { text: null, details: { durationMs, results: [] } }
+  }
 
   const text = recallResponseToPromptString(response)
   return {
     text,
-    results: results.map(r => ({ id: r.id, text: r.text, type: r.type })),
-    durationMs,
+    details: {
+      durationMs,
+      results: results.map(r => ({ type: r.type, text: r.text })),
+    },
   }
-}
-
-function buildMemoryBlock(text: string): string {
-  return `
-
-<hindsight_memories>
-Relevant memories from past conversations (prioritize recent when conflicting). Only use memories that are directly useful to continue this conversation; ignore the rest:
-Current time: ${formatCurrentTime()}
-
-${text}
-</hindsight_memories>`
-}
-
-function buildTranscript(messages: AgentMessage[]): unknown[] {
-  return messages
-    .map(m => {
-      if (m.role === 'user') {
-        return {
-          role: m.role,
-          content:
-            typeof m.content === 'string'
-              ? m.content
-              : m.content
-                  .filter(
-                    (c): c is { type: 'text'; text: string } =>
-                      c.type === 'text',
-                  )
-                  .map(c => c.text)
-                  .join('\n'),
-          timestamp: new Date(m.timestamp).toISOString(),
-        }
-      }
-
-      if (m.role === 'assistant') {
-        return {
-          role: m.role,
-          content: m.content
-            .map(
-              (c: {
-                type: string
-                text?: string
-                id?: string
-                name?: string
-                arguments?: unknown
-              }) => {
-                if (c.type === 'text') {
-                  return { type: c.type, text: c.text }
-                }
-                if (c.type === 'toolCall') {
-                  return {
-                    type: 'tool_use',
-                    id: c.id,
-                    name: c.name,
-                    input: truncate(JSON.stringify(c.arguments), 500),
-                  }
-                }
-                return null
-              },
-            )
-            .filter(Boolean),
-          model: `${m.provider}/${m.model}`,
-          timestamp: new Date(m.timestamp).toISOString(),
-        }
-      }
-
-      if (m.role === 'toolResult') {
-        return {
-          role: 'tool_result',
-          tool_use_id: m.toolCallId,
-          name: m.toolName,
-          content: truncate(
-            m.content
-              .filter(
-                (c): c is { type: 'text'; text: string } => c.type === 'text',
-              )
-              .map(c => c.text)
-              .join('\n'),
-            500,
-          ),
-          is_error: m.isError,
-          timestamp: new Date(m.timestamp).toISOString(),
-        }
-      }
-
-      if (m.role === 'bashExecution') {
-        return {
-          role: 'bash_execution',
-          command: m.command,
-          output: truncate(m.output, 500),
-          exit_code: m.exitCode,
-          timestamp: new Date(m.timestamp).toISOString(),
-        }
-      }
-
-      if (m.role === 'custom') {
-        return {
-          role: 'custom',
-          custom_type: m.customType,
-          content:
-            typeof m.content === 'string'
-              ? m.content
-              : m.content
-                  .filter(
-                    (c): c is { type: 'text'; text: string } =>
-                      c.type === 'text',
-                  )
-                  .map(c => c.text)
-                  .join('\n'),
-          timestamp: new Date(m.timestamp).toISOString(),
-        }
-      }
-    })
-    .filter(Boolean)
 }
 
 async function performRetain(
@@ -292,9 +381,7 @@ async function performRetain(
   cwd: string,
 ): Promise<void> {
   const transcript = buildTranscript(messages)
-  if (transcript.length === 0) return
-
-  const content = stripMemoryTags(JSON.stringify(transcript)).trim()
+  const content = stripMemoryBlock(transcript)
   if (!content) return
 
   const documentId = `pi:${sessionId}`
@@ -309,72 +396,7 @@ async function performRetain(
     context: 'Pi coding agent session',
     updateMode: 'append',
     async: true,
-    metadata: { source: 'pi', cwd, message_count: String(transcript.length) },
+    metadata: { cwd },
     tags: ['pi'],
-  })
-}
-
-export default async function (pi: ExtensionAPI) {
-  const config = DEFAULT_CONFIG
-
-  let sessionId = ''
-
-  const client = new HindsightClient({
-    baseUrl: config.apiUrl,
-    apiKey: config.apiKey,
-  })
-
-  registerRecallRenderer(pi)
-  registerRecallFilter(pi)
-
-  pi.on('session_start', async (_event, ctx) => {
-    sessionId = ctx.sessionManager.getSessionId()
-  })
-
-  pi.on('before_agent_start', async (event, ctx) => {
-    if (!config.autoRecall) return
-
-    const query = event.prompt.trim()
-    if (!query) return
-
-    using _spinner = startRecallSpinner(ctx)
-
-    // TODO: recall timeout & cancellation
-    try {
-      const result = await performRecall(client, config, query)
-
-      if (!result) return
-
-      pi.sendMessage({
-        customType: RECALL_MESSAGE_TYPE,
-        content: `Recalled ${result.results.length} memories in ${formatDuration(result.durationMs)}`,
-        display: true,
-        details: {
-          count: result.results.length,
-          durationMs: result.durationMs,
-          results: result.results,
-          query,
-        },
-      })
-
-      return {
-        systemPrompt: event.systemPrompt + buildMemoryBlock(result.text),
-      }
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : String(err)
-      ctx.ui.notify(`Hindsight recall failed: ${errMsg}`, 'error')
-    }
-  })
-
-  pi.on('agent_end', async (event, ctx) => {
-    if (!config.autoRetain) return
-
-    // TODO: retain timeout & cancellation
-    try {
-      await performRetain(client, config, sessionId, event.messages, ctx.cwd)
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : String(err)
-      ctx.ui.notify(`Hindsight retain failed: ${errMsg}`, 'error')
-    }
   })
 }
