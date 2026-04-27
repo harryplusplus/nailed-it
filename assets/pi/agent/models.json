@@ -18,21 +18,23 @@
       "baseUrl": "https://ollama.com/v1",
       "api": "openai-completions",
       "apiKey": "OLLAMA_API_KEY",
-      "compat": { "supportsDeveloperRole": false },
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": true,
+        "maxTokensField": "max_tokens"
+      },
       "models": [
         {
           "id": "glm-5.1",
           "reasoning": true,
           "contextWindow": 202752,
-          "maxTokens": 131072,
-          "compat": { "maxTokensField": "max_tokens" }
+          "maxTokens": 131072
         },
         {
           "id": "kimi-k2.6:cloud",
           "reasoning": true,
           "contextWindow": 262144,
           "maxTokens": 262144,
-          "compat": { "maxTokensField": "max_tokens" },
           "input": ["text", "image"]
         },
         {
@@ -40,7 +42,12 @@
           "reasoning": true,
           "contextWindow": 1000000,
           "maxTokens": 65536,
-          "compat": { "maxTokensField": "max_tokens" }
+          "compat": {
+            "requiresReasoningContentOnAssistantMessages": true,
+            "reasoningEffortMap": {
+              "high": "max"
+            }
+          }
         }
       ]
     },
@@ -55,9 +62,6 @@
             "supportsReasoningEffort": true,
             "requiresReasoningContentOnAssistantMessages": true,
             "reasoningEffortMap": {
-              "minimal": "low",
-              "low": "low",
-              "medium": "medium",
               "high": "max"
             }
           }
