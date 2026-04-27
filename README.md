@@ -1,6 +1,6 @@
 # Nailed It!
 
-해냈다. 내 AI 환경.
+에이전트의, 에이전트에 의한, 에이전트를 위한 환경.
 
 Hindsight 장기기억 + Pi Coding Agent + Hermes Agent + 각종 도구들.
 
