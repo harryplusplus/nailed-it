@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
+import { Box, Text } from '@mariozechner/pi-tui'
 import {
   Budget,
   HindsightClient,
@@ -92,6 +93,50 @@ export default async function (pi: ExtensionAPI) {
     apiKey: config.apiKey,
   })
 
+  pi.registerMessageRenderer(
+    'hindsight-recall',
+    (message, { expanded }, theme) => {
+      const details = message.details as
+        | {
+            count: number
+            durationMs: number
+            results: Array<{ id: string; text: string; type?: string | null }>
+            query: string
+          }
+        | undefined
+
+      const count = details?.count ?? 0
+      const duration = details?.durationMs ?? 0
+
+      let text = theme.fg('accent', '🧠 Hindsight Recall  ')
+      text += theme.fg('success', `${count}개`)
+      text += theme.fg('dim', ` · ${duration}ms`)
+
+      if (expanded && details && details.results.length > 0) {
+        text += '\n' + theme.fg('dim', '─'.repeat(50))
+        for (const r of details.results) {
+          const typeStr = r.type ? theme.fg('warning', `[${r.type}] `) : ''
+          const snippet = r.text.replace(/\n/g, ' ').slice(0, 60)
+          text += `\n  ${typeStr}${theme.fg('dim', snippet)}`
+        }
+      }
+
+      const box = new Box(1, 1, t => theme.bg('customMessageBg', t))
+      box.addChild(new Text(text, 0, 0))
+      return box
+    },
+  )
+
+  pi.on('context', async event => {
+    const filtered = event.messages.filter(m => {
+      if (m.role === 'custom' && m.customType === 'hindsight-recall') {
+        return false
+      }
+      return true
+    })
+    return { messages: filtered }
+  })
+
   pi.on('session_start', async (_event, ctx) => {
     sessionId = ctx.sessionManager.getSessionId()
 
@@ -147,6 +192,7 @@ export default async function (pi: ExtensionAPI) {
     }, SPINNER_INTERVAL_MS)
 
     // TODO: recall timeout & cancellation
+    const startTime = Date.now()
     try {
       const response = await client.recall(config.bankId, query, {
         budget: config.recallBudget,
@@ -154,8 +200,9 @@ export default async function (pi: ExtensionAPI) {
         types: ['world', 'experience', 'observation'],
         queryTimestamp: new Date().toISOString(),
       })
-
+      const durationMs = Date.now() - startTime
       const { results } = response
+
       if (results.length === 0) {
         await debug('recall', 'no memories found')
         return
@@ -172,6 +219,18 @@ ${text}
 </hindsight_memories>`
 
       await debug('recall', 'text:\n', text)
+
+      pi.sendMessage({
+        customType: 'hindsight-recall',
+        content: `Recalled ${results.length} memories in ${durationMs}ms`,
+        display: true,
+        details: {
+          count: results.length,
+          durationMs,
+          results: results.map(r => ({ id: r.id, text: r.text, type: r.type })),
+          query,
+        },
+      })
 
       return { systemPrompt: event.systemPrompt + block }
     } catch (e) {
