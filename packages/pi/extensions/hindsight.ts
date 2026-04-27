@@ -88,7 +88,7 @@ export default async function (pi: ExtensionAPI) {
 
     const query = composeRecallQuery(
       rawQuery,
-      ctx.sessionManager,
+      ctx,
       config.recallUserTurns,
       config.recallMaxQueryChars,
     )
@@ -190,11 +190,11 @@ function formatCurrentTime(): string {
 
 function composeRecallQuery(
   latestQuery: string,
-  sessionManager: ExtensionContext['sessionManager'],
+  ctx: ExtensionContext,
   recallUserTurns: number,
   maxChars: number,
 ): string {
-  const userMessages = sessionManager
+  const userMessages = ctx.sessionManager
     .getBranch()
     .filter((e): e is SessionMessageEntry => e.type === 'message')
     .map(e => e.message)
@@ -219,17 +219,16 @@ function composeRecallQuery(
   }
 
   const priorMessages = userMessages.slice(0, -1).slice(-(recallUserTurns - 1))
-
-  const contextLines: string[] = []
-  for (const msg of [...priorMessages].reverse()) {
-    const line = `User: ${msg}`
-    const candidate = [...contextLines, line, latestQuery].join('\n\n')
+  const priorBlocks: string[] = []
+  for (const priorMessage of [...priorMessages].reverse()) {
+    const priorBlock = `User: ${priorMessage}`
+    const candidate = [...priorBlocks, priorBlock, latestQuery].join('\n\n')
     if (candidate.length > maxChars) break
-    contextLines.push(line)
+    priorBlocks.push(priorBlock)
   }
-  contextLines.reverse()
+  priorBlocks.reverse()
 
-  return [...contextLines, latestQuery].join('\n\n')
+  return [...priorBlocks, latestQuery].join('\n\n')
 }
 
 function buildMemoryBlock(text: string): string {
