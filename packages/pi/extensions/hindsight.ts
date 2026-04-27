@@ -223,7 +223,7 @@ function composeRecallQuery(
       : truncateText(latestQuery, maxChars)
   }
 
-  const priorMessages = userMessages.slice(0, -1).slice(-(recallUserTurns - 1))
+  const priorMessages = userMessages.slice(-(recallUserTurns - 1))
   const priorBlocks: string[] = []
   for (const priorMessage of [...priorMessages].reverse()) {
     const priorBlock = `User: ${priorMessage}`
