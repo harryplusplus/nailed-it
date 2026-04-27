@@ -2,6 +2,7 @@ import type {
   AgentEndEvent,
   ExtensionAPI,
   ExtensionContext,
+  SessionMessageEntry,
 } from '@mariozechner/pi-coding-agent'
 import { Box, Text, TUI } from '@mariozechner/pi-tui'
 import {
@@ -9,7 +10,7 @@ import {
   HindsightClient,
   recallResponseToPromptString,
 } from '@vectorize-io/hindsight-client'
-import { formatDuration, formatError } from '../src/common'
+import { formatDuration, formatError, truncateText } from '../src/common'
 import {
   AssistantMessage,
   TextContent,
@@ -32,6 +33,8 @@ const DEFAULT_CONFIG = {
   autoRetain: true,
   recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
+  recallUserTurns: 1,
+  recallMaxQueryChars: 800,
 }
 
 type Config = typeof DEFAULT_CONFIG
@@ -80,12 +83,18 @@ export default async function (pi: ExtensionAPI) {
   pi.on('before_agent_start', async (event, ctx) => {
     if (!config.autoRecall) return
 
-    const query = event.prompt.trim()
-    if (!query) return
+    const rawQuery = event.prompt.trim()
+    if (!rawQuery) return
+
+    const query = composeRecallQuery(
+      rawQuery,
+      ctx.sessionManager,
+      config.recallUserTurns,
+      config.recallMaxQueryChars,
+    )
 
     using _spinner = startRecallSpinner(ctx)
 
-    // TODO: recall timeout & cancellation
     try {
       const result = await performRecall(client, config, query)
 
@@ -114,7 +123,6 @@ export default async function (pi: ExtensionAPI) {
   pi.on('agent_end', async (event, ctx) => {
     if (!config.autoRetain) return
 
-    // TODO: retain timeout & cancellation
     try {
       await performRetain(client, config, sessionId, event.messages, ctx.cwd)
     } catch (err) {
@@ -178,6 +186,50 @@ function formatCurrentTime(): string {
   const h = String(now.getUTCHours()).padStart(2, '0')
   const min = String(now.getUTCMinutes()).padStart(2, '0')
   return `${y}-${m}-${d} ${h}:${min} UTC`
+}
+
+function composeRecallQuery(
+  latestQuery: string,
+  sessionManager: ExtensionContext['sessionManager'],
+  recallUserTurns: number,
+  maxChars: number,
+): string {
+  const userMessages = sessionManager
+    .getBranch()
+    .filter((e): e is SessionMessageEntry => e.type === 'message')
+    .map(e => e.message)
+    .filter((m): m is UserMessage => m.role === 'user')
+    .map(m => {
+      if (typeof m.content === 'string') {
+        return m.content.trim()
+      }
+      return m.content
+        .filter((c): c is TextContent => c.type === 'text')
+        .map(c => c.text.trim())
+        .filter(t => t)
+        .join('\n')
+    })
+    .map(t => stripMemoryBlock(t))
+    .filter(t => t)
+
+  if (recallUserTurns <= 1) {
+    return latestQuery.length <= maxChars
+      ? latestQuery
+      : truncateText(latestQuery, maxChars)
+  }
+
+  const priorMessages = userMessages.slice(0, -1).slice(-(recallUserTurns - 1))
+
+  const contextLines: string[] = []
+  for (const msg of [...priorMessages].reverse()) {
+    const line = `User: ${msg}`
+    const candidate = [...contextLines, line, latestQuery].join('\n\n')
+    if (candidate.length > maxChars) break
+    contextLines.push(line)
+  }
+  contextLines.reverse()
+
+  return [...contextLines, latestQuery].join('\n\n')
 }
 
 function buildMemoryBlock(text: string): string {
