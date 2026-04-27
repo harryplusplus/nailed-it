@@ -5,11 +5,7 @@ export default function (pi: ExtensionAPI) {
     const model = ctx.model
     if (!model) return
 
-    const payload = event.payload as {
-      max_tokens?: number
-      max_completion_tokens?: number
-    }
+    const payload = event.payload as { max_tokens?: number }
     payload.max_tokens = model.maxTokens
-    payload.max_completion_tokens = model.maxTokens
   })
 }

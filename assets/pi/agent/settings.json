@@ -1,12 +1,12 @@
 {
   "defaultProvider": "opencode-go",
-  "defaultModel": "kimi-k2.6",
+  "defaultModel": "glm-5.1",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
     "../../repo/nailed-it/packages/pi"
   ],
-  "lastChangelogVersion": "0.70.2",
+  "lastChangelogVersion": "0.70.5",
   "skills": [
     "!find-skills"
   ],
