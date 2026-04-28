@@ -26,6 +26,7 @@ type RecallDetails = {
   results: { type?: string | null; text: string }[]
   query: string
 }
+type RecallResult = { text: string | null; details: RecallDetails }
 
 const TIKTOKEN_ENCODING = getEncoding('cl100k_base')
 
@@ -65,6 +66,7 @@ export default async function (pi: ExtensionAPI) {
     apiKey: config.apiKey,
   })
 
+  let pendingRecallResult: RecallResult | null = null
   let sessionId = ''
 
   pi.on('session_start', async (_event, ctx) => {
@@ -118,24 +120,41 @@ export default async function (pi: ExtensionAPI) {
 
       pi.sendMessage({
         customType: RECALL_KEY,
-        content: `Recalled ${result.details.results.length} memories in ${formatDuration(result.details.durationMs)}`,
+        content: '',
         display: true,
         details: result.details,
       })
 
-      if (!result.text) return
-
-      return {
-        systemPrompt: event.systemPrompt + buildMemoryBlock(result.text),
-      }
+      pendingRecallResult = result
     } catch (err) {
       ctx.ui.notify(`Hindsight recall failed: ${formatError(err)}`, 'error')
     }
   })
 
   pi.on('context', async event => {
-    const filtered = filterRecallMessages(event.messages)
-    return { messages: filtered }
+    let messages = filterRecallMessages(event.messages)
+
+    const recallResult = pendingRecallResult
+    pendingRecallResult = null
+
+    if (recallResult?.text) {
+      const memoryBlock = buildMemoryBlock(recallResult.text)
+      const lastUserIdx = messages.findLastIndex(m => m.role === 'user')
+
+      if (lastUserIdx >= 0) {
+        messages = messages.map((m, i) => {
+          if (i !== lastUserIdx || m.role !== 'user') return m
+          if (typeof m.content === 'string') {
+            return { ...m, content: memoryBlock + '\n\n' + m.content }
+          }
+
+          const textContent: TextContent = { type: 'text', text: memoryBlock }
+          return { ...m, content: [textContent, ...m.content] }
+        })
+      }
+    }
+
+    return { messages }
   })
 
   pi.on('agent_end', async (event, ctx) => {
@@ -249,8 +268,6 @@ function composeRecallQuery(
 
 function buildMemoryBlock(text: string): string {
   return [
-    '',
-    '',
     '<hindsight_memories>',
     'Relevant memories from past conversations (prioritize recent when conflicting). Only use memories that are directly useful to continue this conversation; ignore the rest:',
     `Current time: ${formatCurrentTime()}`,
@@ -346,14 +363,8 @@ function normalizeAssistantMessage(message: AssistantMessage): string {
 }
 
 function normalizeToolResultMessage(message: ToolResultMessage): string {
-  const parts: string[] = []
-
   const timestamp = formatTimestamp(message.timestamp)
-  parts.push(
-    `Tool result (${message.toolName}, is_error: ${message.isError}, timestamp: ${timestamp})`,
-  )
-
-  const text = parts.join('\n')
+  const text = `Tool result (${message.toolName}, is_error: ${message.isError}, timestamp: ${timestamp})`
   return normalizeNewlines(text)
 }
 
@@ -394,7 +405,7 @@ async function performRecall(
   client: HindsightClient,
   config: Config,
   query: string,
-): Promise<{ text: string | null; details: RecallDetails }> {
+): Promise<RecallResult> {
   const startTime = Date.now()
   const response = await client.recall(config.bankId, query, {
     budget: config.recallBudget,
