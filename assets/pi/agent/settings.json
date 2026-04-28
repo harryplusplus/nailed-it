@@ -1,7 +1,7 @@
 {
-  "defaultProvider": "opencode-go",
+  "defaultProvider": "deepseek",
   "defaultModel": "deepseek-v4-pro",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "xhigh",
   "theme": "light",
   "packages": [
     "../../repo/nailed-it/packages/pi"
