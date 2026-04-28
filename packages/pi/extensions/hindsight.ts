@@ -44,7 +44,7 @@ const DEFAULT_CONFIG = {
   apiUrl: 'http://localhost:8888',
   apiKey: undefined,
   bankId: 'openclaw',
-  autoRecall: true,
+  autoRecall: false,
   autoRetain: true,
   recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
