@@ -1,5 +1,6 @@
 import typer
 from dev_cli.commands.setup.git_submodules import setup_git_submodules
+from dev_cli.commands.setup.global_skills import setup_global_skills
 from dev_cli.commands.setup.hermes_config import setup_hermes_config
 from dev_cli.commands.setup.opencode_config import setup_opencode_config
 from dev_cli.commands.setup.pg_config import setup_pg_config
@@ -30,6 +31,12 @@ def opencode_config() -> None:
 def pg_config() -> None:
     """Build and install PostgreSQL extensions (VectorChord, pg_tokenizer, bm25)."""
     setup_pg_config()
+
+
+@app.command()
+def global_skills() -> None:
+    """Clean broken symlinks and link global skills from skills-src/."""
+    setup_global_skills()
 
 
 @app.command()

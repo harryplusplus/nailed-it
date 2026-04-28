@@ -24,7 +24,17 @@ include = [
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D", "INP001", "PLW1510", "S310", "S602", "S603", "S607", "T201"]
+ignore = [
+    "COM812",
+    "D",
+    "INP001",
+    "PLW1510",
+    "S310",
+    "S602",
+    "S603",
+    "S607",
+    "T201",
+]
 
 [tool.pyright]
 include = ["python-packages"]
