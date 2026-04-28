@@ -71,6 +71,11 @@ export default async function (pi: ExtensionAPI) {
 
   pi.on('session_start', async (_event, ctx) => {
     sessionId = ctx.sessionManager.getSessionId()
+    const theme = ctx.ui.theme
+    ctx.ui.setStatus(
+      'hindsight-bank',
+      theme.fg('accent', '🧠 ') + theme.fg('dim', config.bankId),
+    )
   })
 
   pi.registerMessageRenderer(RECALL_KEY, (message, { expanded }, theme) => {
@@ -178,7 +183,12 @@ function filterRecallMessages(messages: AgentMessage[]): AgentMessage[] {
 }
 
 function loadConfig(): Config {
-  return { ...DEFAULT_CONFIG }
+  const config = { ...DEFAULT_CONFIG }
+  const bankId = process.env.HINDSIGHT_BANK_ID
+  if (bankId) {
+    config.bankId = bankId
+  }
+  return config
 }
 
 function startRecallSpinner(ctx: ExtensionContext): Disposable {
