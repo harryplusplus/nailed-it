@@ -68,7 +68,20 @@
         {
           "id": "deepseek-v4-flash",
           "reasoning": true,
-          "contextWindow": 1000000,
+          "contextWindow": 1048576,
+          "maxTokens": 384000,
+          "compat": {
+            "supportsReasoningEffort": true,
+            "requiresReasoningContentOnAssistantMessages": true,
+            "reasoningEffortMap": {
+              "high": "max"
+            }
+          }
+        },
+        {
+          "id": "deepseek-v4-pro",
+          "reasoning": true,
+          "contextWindow": 1048576,
           "maxTokens": 384000,
           "compat": {
             "supportsReasoningEffort": true,
