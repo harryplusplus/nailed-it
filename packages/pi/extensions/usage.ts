@@ -11,27 +11,73 @@ export default function (pi: ExtensionAPI) {
   let previousUsages: TurnUsage[] = []
   let currentUsages: TurnUsage[] = []
 
-  pi.registerMessageRenderer(CUSTOM_TYPE, (message, _options, theme) => {
+  pi.registerMessageRenderer(CUSTOM_TYPE, (message, options, theme) => {
     const data = message.details as UsageData | undefined
     if (!data) return new Text('', 0, 0)
 
-    let text = theme.fg('dim', '📊 Usages\n')
+    const allUsages = [...data.previousUsages, ...data.currentUsages]
 
-    for (const [label, items] of [
-      ['Previous:', data.previousUsages],
-      ['Current:', data.currentUsages],
-    ] as const) {
-      if (items.length === 0) continue
-      text += '\n' + theme.fg('dim', label)
-      for (const u of items) {
-        text += '\n'
-        text += theme.fg('dim', `  T${u.turn} -`)
-        text += theme.fg('muted', ` input: ${u.input}`)
-        text += theme.fg('muted', `, output: ${u.output}`)
-        text += theme.fg('muted', `, cache read: ${u.cacheRead}`)
-        text += theme.fg('muted', `, cache write: ${u.cacheWrite}`)
-        text += theme.fg('muted', `, total: ${u.totalTokens}`)
+    // Check if cache read ever decreased across all turns
+    let cacheReadDecreased = false
+    for (let i = 1; i < allUsages.length; i++) {
+      if (allUsages[i]!.cacheRead < allUsages[i - 1]!.cacheRead) {
+        cacheReadDecreased = true
+        break
       }
+    }
+
+    if (options.expanded) {
+      // Full expanded display
+      let text = theme.fg('dim', '📊 Usages\n')
+
+      for (const [label, items] of [
+        ['Previous:', data.previousUsages],
+        ['Current:', data.currentUsages],
+      ] as const) {
+        if (items.length === 0) continue
+        text += '\n' + theme.fg('dim', label)
+        for (const u of items) {
+          text += '\n'
+          text += theme.fg('dim', `  T${u.turn} -`)
+          text += theme.fg('muted', ` input: ${u.input}`)
+          text += theme.fg('muted', `, output: ${u.output}`)
+          text += theme.fg('muted', `, cache read: ${u.cacheRead}`)
+          text += theme.fg('muted', `, cache write: ${u.cacheWrite}`)
+          text += theme.fg('muted', `, total: ${u.totalTokens}`)
+        }
+      }
+
+      return new Text(text, 1, 1, s => theme.bg('customMessageBg', s))
+    }
+
+    // Collapsed view: sum current usages for compact one-liner
+    const sum = data.currentUsages.reduce(
+      (acc, u) => ({
+        input: acc.input + u.input,
+        output: acc.output + u.output,
+        cacheRead: acc.cacheRead + u.cacheRead,
+        cacheWrite: acc.cacheWrite + u.cacheWrite,
+        totalTokens: acc.totalTokens + u.totalTokens,
+      }),
+      { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0 },
+    )
+
+    let text = theme.fg('dim', '📊 Usages')
+
+    if (cacheReadDecreased) {
+      text += ' ' + theme.fg('warning', theme.bold('⚠ Cache read shrunk'))
+    }
+
+    if (data.currentUsages.length > 0) {
+      const parts = [
+        `${data.currentUsages.length}t`,
+        `in:${sum.input}`,
+        `out:${sum.output}`,
+        `cr:${sum.cacheRead}`,
+        `cw:${sum.cacheWrite}`,
+        `∑${sum.totalTokens}`,
+      ]
+      text += ' ' + theme.fg('muted', parts.join(' '))
     }
 
     return new Text(text, 1, 1, s => theme.bg('customMessageBg', s))
