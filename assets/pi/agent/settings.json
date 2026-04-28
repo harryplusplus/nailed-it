@@ -1,6 +1,6 @@
 {
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "glm-5.1",
+  "defaultModel": "deepseek-v4-pro:cloud",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
