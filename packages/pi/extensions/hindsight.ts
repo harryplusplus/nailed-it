@@ -10,7 +10,8 @@ import {
   HindsightClient,
   recallResponseToPromptString,
 } from '@vectorize-io/hindsight-client'
-import { formatDuration, formatError, truncateText } from '../src/common'
+import { getEncoding } from 'js-tiktoken'
+import { formatDuration, formatError } from '../src/common'
 import {
   AssistantMessage,
   TextContent,
@@ -26,6 +27,18 @@ type RecallDetails = {
   query: string
 }
 
+const TIKTOKEN_ENCODING = getEncoding('cl100k_base')
+
+function countTokens(text: string): number {
+  return TIKTOKEN_ENCODING.encode(text).length
+}
+
+function truncateByTokens(text: string, maxTokens: number): string {
+  const tokens = TIKTOKEN_ENCODING.encode(text)
+  if (tokens.length <= maxTokens) return text
+  return TIKTOKEN_ENCODING.decode(tokens.slice(0, maxTokens)) + '...'
+}
+
 const DEFAULT_CONFIG = {
   apiUrl: 'http://localhost:8888',
   apiKey: undefined,
@@ -35,7 +48,7 @@ const DEFAULT_CONFIG = {
   recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
   recallUserTurns: 3,
-  recallMaxQueryChars: 800,
+  recallMaxQueryTokens: 1500,
 }
 
 type Config = typeof DEFAULT_CONFIG
@@ -95,7 +108,7 @@ export default async function (pi: ExtensionAPI) {
       rawQuery,
       ctx,
       config.recallUserTurns,
-      config.recallMaxQueryChars,
+      config.recallMaxQueryTokens,
     )
 
     using _spinner = startRecallSpinner(ctx)
@@ -197,7 +210,7 @@ function composeRecallQuery(
   latestQuery: string,
   ctx: ExtensionContext,
   recallUserTurns: number,
-  maxChars: number,
+  maxTokens: number,
 ): string {
   const userMessages = ctx.sessionManager
     .getBranch()
@@ -218,9 +231,7 @@ function composeRecallQuery(
     .filter(t => t)
 
   if (recallUserTurns <= 1) {
-    return latestQuery.length <= maxChars
-      ? latestQuery
-      : truncateText(latestQuery, maxChars)
+    return truncateByTokens(latestQuery, maxTokens)
   }
 
   const priorMessages = userMessages.slice(-(recallUserTurns - 1))
@@ -228,12 +239,12 @@ function composeRecallQuery(
   for (const priorMessage of [...priorMessages].reverse()) {
     const priorBlock = `User: ${priorMessage}`
     const candidate = [...priorBlocks, priorBlock, latestQuery].join('\n\n')
-    if (candidate.length > maxChars) break
+    if (countTokens(candidate) > maxTokens) break
     priorBlocks.push(priorBlock)
   }
   priorBlocks.reverse()
 
-  return [...priorBlocks, latestQuery].join('\n\n')
+  return truncateByTokens([...priorBlocks, latestQuery].join('\n\n'), maxTokens)
 }
 
 function buildMemoryBlock(text: string): string {
