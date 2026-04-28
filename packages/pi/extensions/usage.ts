@@ -15,19 +15,7 @@ export default function (pi: ExtensionAPI) {
     const data = message.details as UsageData | undefined
     if (!data) return new Text('', 0, 0)
 
-    const allUsages = [...data.previousUsages, ...data.currentUsages]
-
-    // Check if cache read ever decreased across all turns
-    let cacheReadDecreased = false
-    for (let i = 1; i < allUsages.length; i++) {
-      if (allUsages[i]!.cacheRead < allUsages[i - 1]!.cacheRead) {
-        cacheReadDecreased = true
-        break
-      }
-    }
-
     if (options.expanded) {
-      // Full expanded display
       let text = theme.fg('dim', '📊 Usages\n')
 
       for (const [label, items] of [
@@ -50,7 +38,6 @@ export default function (pi: ExtensionAPI) {
       return new Text(text, 1, 1, s => theme.bg('customMessageBg', s))
     }
 
-    // Collapsed view: sum current usages for compact one-liner
     const sum = data.currentUsages.reduce(
       (acc, u) => ({
         input: acc.input + u.input,
@@ -64,8 +51,18 @@ export default function (pi: ExtensionAPI) {
 
     let text = theme.fg('dim', '📊 Usages')
 
+    const allUsages = [...data.previousUsages, ...data.currentUsages]
+
+    let cacheReadDecreased = false
+    for (let i = 1; i < allUsages.length; i++) {
+      if (allUsages[i]!.cacheRead < allUsages[i - 1]!.cacheRead) {
+        cacheReadDecreased = true
+        break
+      }
+    }
+
     if (cacheReadDecreased) {
-      text += ' ' + theme.fg('warning', theme.bold('⚠ Cache read shrunk'))
+      text += ' ' + theme.fg('warning', theme.bold('⚠️ Cache read shrunk'))
     }
 
     if (data.currentUsages.length > 0) {
@@ -75,7 +72,7 @@ export default function (pi: ExtensionAPI) {
         `out:${sum.output}`,
         `cr:${sum.cacheRead}`,
         `cw:${sum.cacheWrite}`,
-        `∑${sum.totalTokens}`,
+        `total:${sum.totalTokens}`,
       ]
       text += ' ' + theme.fg('muted', parts.join(' '))
     }
