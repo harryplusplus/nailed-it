@@ -1,5 +1,15 @@
 # 프로젝트 가이드라인
 
+## Agent Skills
+
+Skills 파일(`skills-src/*/SKILL.md`)을 수정한 뒤에는 반드시 배포하라:
+
+```bash
+npx skills add -g -y skills-src/<skill-name>
+```
+
+배포하지 않으면 `~/.agents/skills/` 경로의 실제 스킬이 갱신되지 않는다.
+
 ## Python
 
 Python 파일을 변경한 뒤에는 반드시 ruff와 pyright를 실행하라:

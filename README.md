@@ -31,15 +31,16 @@ pnpm i
 
 ```
 python-packages/
-└── dev-cli/                        # CLI 도구 (Python)
-    └── src/dev_cli/commands/
-        ├── setup/                  # 개발 환경 설정
-        │   ├── git_submodules.py   # 서브모듈 초기화
-        │   ├── hermes_config.py    # Hermes Agent 설정
-        │   ├── opencode_config.py  # OpenCode 설정
-        │   ├── pg_config.py        # PostgreSQL 확장 설치
-        │   └── pi_config.py        # Pi Coding Agent 설정
-        └── models_dev.py           # models.dev API 조회
+├── dev-cli/                        # CLI 도구 (Python)
+│   └── src/dev_cli/commands/
+│       ├── setup/                  # 개발 환경 설정
+│       │   ├── git_submodules.py   # 서브모듈 초기화
+│       │   ├── hermes_config.py    # Hermes Agent 설정
+│       │   ├── opencode_config.py  # OpenCode 설정
+│       │   ├── pg_config.py        # PostgreSQL 확장 설치
+│       │   └── pi_config.py        # Pi Coding Agent 설정
+│       └── models_dev.py           # models.dev API 조회
+└── nailed-it-hermes/               # Hermes Agent 플러그인
 
 packages/
 ├── pi/                     # Pi Coding Agent 확장 모음
@@ -58,6 +59,9 @@ skills-src/
 ├── agent-skills-review/         # 스킬 검수
 ├── agent-skills-python-dev/     # 스킬 Python 품질 검사
 └── agent-skills-typescript-dev/ # 스킬 TypeScript 품질 검사
+
+# Skills 배포 (수정 후 필수)
+npx skills add -g -y skills-src/<skill-name>
 
 external/
 ├── hindsight/          # Hindsight API (서브모듈)
@@ -95,11 +99,15 @@ uv run dev-cli setup pi-config
 uv run dev-cli models-dev providers
 uv run dev-cli models-dev models openai
 uv run dev-cli models-dev model openai gpt-4o
+
+# Agent Skill 배포 (수정 후)
+npx skills add -g -y skills-src/memory
 ```
 
 ## 환경변수
 
-`.env.example` 참고.
+`.env.example` 참고. 주요 환경변수:
+- `HINDSIGHT_API_RECALL_MAX_QUERY_TOKENS` — recall 쿼리 최대 토큰 수 (기본 500)
 
 ## 라이선스
 
