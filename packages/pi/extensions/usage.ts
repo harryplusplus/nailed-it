@@ -28,7 +28,7 @@ export default function (pi: ExtensionAPI) {
           text += '\n'
           text += theme.fg(
             'muted',
-            `  T${u.turn}: in:${u.input} out:${u.output} cr:${u.cacheRead} cw:${u.cacheWrite} total:${u.totalTokens}`,
+            `  T${u.turn} in:${u.input} out:${u.output} cr:${u.cacheRead} cw:${u.cacheWrite} total:${u.totalTokens}`,
           )
         }
       }
