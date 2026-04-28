@@ -3,16 +3,6 @@
 - `README.md` — 관리자용. 환경 세팅, 의존성 설치, CLI 사용법.
 - `AGENTS.md` (이 파일) — 에이전트 작업자용. 코드 변경 시 따라야 할 규칙.
 
-## Agent Skills
-
-Skills 파일(`skills-src/*/SKILL.md`)을 수정한 뒤에는 반드시 배포하라:
-
-```bash
-npx skills add -g -y skills-src/<skill-name>
-```
-
-배포하지 않으면 `~/.agents/skills/` 경로의 실제 스킬이 갱신되지 않는다.
-
 ## Python
 
 Python 파일을 변경한 뒤에는 반드시 ruff와 pyright를 실행하라:
