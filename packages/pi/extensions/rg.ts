@@ -16,13 +16,13 @@ export default async function (pi: ExtensionAPI) {
     const lines = [
       '',
       '',
-      'Always use `rg` instead of `grep`.',
+      '## `rg`: `|` needs NO escape — Rust regex, opposite of grep',
       '',
-      'When using `rg`, keep the following rules in mind. In `rg` patterns, the pipe character `|` is an alternation (OR) operator. Do NOT escape it with a backslash. For example, write `rg "foo|bar" file.ts`, not `rg "foo\\|bar" file.ts`. The latter searches for the literal string "foo|bar" and will not match either "foo" or "bar".',
+      'rg uses Rust regex. `|` is the OR operator. Do NOT escape it.',
+      '- `rg "foo|bar"` → matches `foo` or `bar`',
+      '- `rg "foo\\|bar"` → literal `foo|bar` — you will miss both',
       '',
-      'Examples:',
-      '1. To find either `isStreaming` or `agent_end`, use `rg "isStreaming|agent_end" file.js`.',
-      "2. To match a literal backslash-pipe (`\\|`), use a character class: `rg '[\\|]' file.js`.",
+      'To match a literal `|`, use a character class: `rg "[|]" file.ts`.',
     ]
     return { systemPrompt: event.systemPrompt + lines.join('\n') }
   })
