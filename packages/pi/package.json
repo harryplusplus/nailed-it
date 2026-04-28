@@ -32,7 +32,7 @@
       "extensions/notify.ts",
       "extensions/rg.ts",
       "extensions/temperature-zero.ts",
-      "extensions/usage.ts"
+      "extensions/usages.ts"
     ]
   }
 }
