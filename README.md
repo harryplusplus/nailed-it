@@ -106,8 +106,7 @@ npx skills add -g -y skills-src/memory
 
 ## 환경변수
 
-`.env.example` 참고. 주요 환경변수:
-- `HINDSIGHT_API_RECALL_MAX_QUERY_TOKENS` — recall 쿼리 최대 토큰 수 (기본 500)
+`.env.example` 참고.
 
 ## 라이선스
 
