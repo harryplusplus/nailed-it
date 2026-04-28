@@ -292,7 +292,7 @@ function buildTranscript(messages: AgentMessage[]): string {
     }
   }
 
-  return parts.join('\n\n')
+  return parts.join('\n\n') + '\n'
 }
 
 function normalizeUserMessage(message: UserMessage): string {
