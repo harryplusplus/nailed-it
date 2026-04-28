@@ -15,7 +15,7 @@ export default function (pi: ExtensionAPI) {
     const data = message.details as UsageData | undefined
     if (!data) return new Text('', 0, 0)
 
-    let text = theme.fg('dim', '📊 Usages')
+    let text = theme.fg('dim', '📊 Usages\n')
 
     for (const [label, items] of [
       ['Previous:', data.previousUsages],
