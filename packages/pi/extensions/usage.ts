@@ -26,12 +26,10 @@ export default function (pi: ExtensionAPI) {
         text += '\n' + theme.fg('dim', label)
         for (const u of items) {
           text += '\n'
-          text += theme.fg('dim', `  T${u.turn} -`)
-          text += theme.fg('muted', ` input: ${u.input}`)
-          text += theme.fg('muted', `, output: ${u.output}`)
-          text += theme.fg('muted', `, cache read: ${u.cacheRead}`)
-          text += theme.fg('muted', `, cache write: ${u.cacheWrite}`)
-          text += theme.fg('muted', `, total: ${u.totalTokens}`)
+          text += theme.fg(
+            'muted',
+            `  T${u.turn}: in:${u.input} out:${u.output} cr:${u.cacheRead} cw:${u.cacheWrite} total:${u.totalTokens}`,
+          )
         }
       }
 
