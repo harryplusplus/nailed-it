@@ -192,7 +192,7 @@ function startRecallSpinner(ctx: ExtensionContext): Disposable {
   }
 }
 
-function stripMemoryBlock(text: string): string {
+function stripMemoryTag(text: string): string {
   return text.replace(/<hindsight_memories>[\s\S]*?<\/hindsight_memories>/g, '')
 }
 
@@ -227,7 +227,7 @@ function composeRecallQuery(
         .filter(t => t)
         .join('\n')
     })
-    .map(t => stripMemoryBlock(t))
+    .map(t => stripMemoryTag(t))
     .filter(t => t)
 
   if (recallUserTurns <= 1) {
@@ -350,19 +350,8 @@ function normalizeToolResultMessage(message: ToolResultMessage): string {
 
   const timestamp = formatTimestamp(message.timestamp)
   parts.push(
-    `Tool result (${message.toolName}, error: ${message.isError}, timestamp: ${timestamp})`,
+    `Tool result (${message.toolName}, is_error: ${message.isError}, timestamp: ${timestamp})`,
   )
-
-  const content = message.content
-    .filter((c): c is TextContent => c.type === 'text')
-    .map(c => c.text.trim())
-    .filter(t => t)
-    .join('\n')
-  if (content) {
-    parts.push('<content>')
-    parts.push(content)
-    parts.push('</content>')
-  }
 
   const text = parts.join('\n')
   return normalizeNewlines(text)
@@ -387,16 +376,6 @@ function normalizeBashExecutionMessage(message: BashExecutionMessage): string {
     parts.push('<command>')
     parts.push(command)
     parts.push('</command>')
-  }
-
-  const output = message.output.trim()
-  if (output) {
-    if (message.truncated) {
-      parts.push('> Output field contains only the tail portion.')
-    }
-    parts.push('<output>')
-    parts.push(output)
-    parts.push('</output>')
   }
 
   const text = parts.join('\n')
@@ -449,7 +428,7 @@ async function performRetain(
   cwd: string,
 ): Promise<void> {
   const transcript = buildTranscript(messages)
-  const content = stripMemoryBlock(transcript)
+  const content = stripMemoryTag(transcript)
   if (!content) return
 
   const documentId = `pi:${sessionId}`
