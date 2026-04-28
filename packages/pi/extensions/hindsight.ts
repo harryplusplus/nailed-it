@@ -36,7 +36,7 @@ function countTokens(text: string): number {
 function truncateByTokens(text: string, maxTokens: number): string {
   const tokens = TIKTOKEN_ENCODING.encode(text)
   if (tokens.length <= maxTokens) return text
-  return TIKTOKEN_ENCODING.decode(tokens.slice(0, maxTokens)) + '...'
+  return TIKTOKEN_ENCODING.decode(tokens.slice(0, maxTokens))
 }
 
 const DEFAULT_CONFIG = {
