@@ -1040,7 +1040,7 @@ wheels = [
 
 [[package]]
 name = "hindsight-api-slim"
-version = "0.5.4"
+version = "0.5.6"
 source = { editable = "external/hindsight/hindsight-api-slim" }
 dependencies = [
     { name = "aiohttp" },
@@ -1127,8 +1127,8 @@ requires-dist = [
     { name = "litellm", specifier = ">=1.83.0" },
     { name = "llama-cpp-python", extras = ["server"], marker = "extra == 'local-llm'", specifier = ">=0.3.0" },
     { name = "markitdown", extras = ["pdf", "docx", "pptx", "xlsx", "xls"], specifier = ">=0.1.4" },
-    { name = "mlx", marker = "extra == 'local-ml'", specifier = ">=0.31.0" },
-    { name = "mlx-lm", marker = "extra == 'local-ml'", specifier = ">=0.31.1" },
+    { name = "mlx", marker = "sys_platform != 'win32' and extra == 'local-ml'", specifier = ">=0.31.0" },
+    { name = "mlx-lm", marker = "sys_platform != 'win32' and extra == 'local-ml'", specifier = ">=0.31.1" },
     { name = "obstore", specifier = ">=0.4.0" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "opentelemetry-api", specifier = ">=1.20.0" },
@@ -1138,7 +1138,7 @@ requires-dist = [
     { name = "opentelemetry-sdk", specifier = ">=1.20.0" },
     { name = "opentelemetry-semantic-conventions", specifier = ">=0.41b0" },
     { name = "orjson", specifier = ">=3.11.6" },
-    { name = "pg0-embedded", marker = "extra == 'embedded-db'", specifier = ">=0.11.0" },
+    { name = "pg0-embedded", marker = "extra == 'embedded-db'", specifier = ">=0.13.0" },
     { name = "pgvector", specifier = ">=0.4.1" },
     { name = "pillow", specifier = ">=12.1.1" },
     { name = "protobuf", specifier = ">=6.33.5" },

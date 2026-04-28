@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@vectorize-io/hindsight-control-plane':
-        specifier: ^0.5.3
-        version: 0.5.3(@babel/core@7.29.0)(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(jiti@2.6.1)(redux@5.0.1)(styled-components@6.4.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
+        specifier: ^0.5.6
+        version: 0.5.6(@babel/core@7.29.0)(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(jiti@2.6.1)(redux@5.0.1)(styled-components@6.4.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
     devDependencies:
       '@types/node':
         specifier: ^25.6.0
@@ -2112,8 +2112,8 @@ packages:
   '@vectorize-io/hindsight-client@0.5.4':
     resolution: {integrity: sha512-XroGmAsIRLm754+BieorqNoX3tUoSH/Uph2nkPjpLVnrRfrmT7ew1vIPfw95ycGRRLTSpk3usD2+tw6vdchtpQ==}
 
-  '@vectorize-io/hindsight-control-plane@0.5.3':
-    resolution: {integrity: sha512-wpY4dY3T+D7JW/MbprVEkGjYamEQlMQxts6U5NJJswa2dq3J7uIn7a2+BDUjbckB+wgDPjSV7SesNw+iev5tfw==}
+  '@vectorize-io/hindsight-control-plane@0.5.6':
+    resolution: {integrity: sha512-+srfieIgfU07iwtNoOQmghsxU/fTx6NPz4k+JW75UBNykSXwlYziz0HistHDW/HPaIQk23q1yIlHJNQXRV+yHg==}
     hasBin: true
 
   acorn-jsx@5.3.2:
@@ -6709,7 +6709,7 @@ snapshots:
 
   '@vectorize-io/hindsight-client@0.5.4': {}
 
-  '@vectorize-io/hindsight-control-plane@0.5.3(@babel/core@7.29.0)(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(jiti@2.6.1)(redux@5.0.1)(styled-components@6.4.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))':
+  '@vectorize-io/hindsight-control-plane@0.5.6(@babel/core@7.29.0)(@typescript-eslint/parser@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(jiti@2.6.1)(redux@5.0.1)(styled-components@6.4.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))':
     dependencies:
       '@chenglou/pretext': 0.0.3
       '@radix-ui/react-alert-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
