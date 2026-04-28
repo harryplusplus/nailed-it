@@ -38,16 +38,30 @@ python-packages/
 │       │   ├── hermes_config.py    # Hermes Agent 설정
 │       │   ├── opencode_config.py  # OpenCode 설정
 │       │   ├── pg_config.py        # PostgreSQL 확장 설치
-│       │   └── pi_config.py        # Pi Coding Agent 설정
+│       │   ├── pi_config.py        # Pi Coding Agent 설정
+│       │   └── global_skills.py    # 전역 스킬 심볼릭 링크
 │       └── models_dev.py           # models.dev API 조회
 └── nailed-it-hermes/               # Hermes Agent 플러그인
 
 packages/
 ├── pi/                     # Pi Coding Agent 확장 모음
 │   └── extensions/
-│       ├── hindsight.ts    # 장기기억 (retain/recall)
-│       ├── max-tokens.ts   # 모델별 max_tokens 설정
-│       └── ...             # fd, rg, gh 등 도구 확장
+│       ├── activate-skill.ts   # 스킬 활성화
+│       ├── elapsed-time.ts     # 경과 시간 표시
+│       ├── fd.ts               # fd 검색
+│       ├── find.ts             # find 검색
+│       ├── gh.ts               # GitHub CLI
+│       ├── grep.ts             # grep 검색
+│       ├── hindsight.ts        # 장기기억 (retain/recall)
+│       ├── ls.ts               # ls 파일 목록
+│       ├── max-tokens.ts       # 모델별 max_tokens 설정
+│       ├── notify.ts           # 시스템 알림
+│       ├── rg.ts               # ripgrep 검색
+│       ├── tavily.ts           # Tavily 검색 및 추출
+│       ├── temperature-zero.ts # temperature 0 설정
+│       ├── usage.ts            # 토큰 사용량 표시
+│       ├── web-fetch.ts        # 웹 페이지 페치
+│       └── web-search.ts       # 웹 검색
 └── opencode/               # OpenCode 플러그인
 
 skills-src/
@@ -59,9 +73,6 @@ skills-src/
 ├── agent-skills-review/         # 스킬 검수
 ├── agent-skills-python-dev/     # 스킬 Python 품질 검사
 └── agent-skills-typescript-dev/ # 스킬 TypeScript 품질 검사
-
-# Skills 배포 (수정 후 필수)
-npx skills add -g -y skills-src/<skill-name>
 
 external/
 ├── hindsight/          # Hindsight API (서브모듈)
@@ -83,7 +94,7 @@ uv run dev-cli setup --help
 # 서브모듈 클론 및 업데이트
 uv run dev-cli setup git-submodules
 
-# Hermes Agent (venv 생성 → config 링크 → 명령어 링크)
+# Hermes Agent (venv 생성 → 의존성 설치 → config/plugin/명령어 링크)
 uv run dev-cli setup hermes-config
 
 # OpenCode 설정 파일 링크
@@ -95,13 +106,14 @@ uv run dev-cli setup pg-config
 # Pi Coding Agent 설정 파일 링크 + 패키지 설치
 uv run dev-cli setup pi-config
 
+# 전역 스킬 심볼릭 링크 (skills-src/ → ~/.agents/skills/)
+uv run dev-cli setup global-skills
+
 # models.dev API에서 프로바이더/모델 정보 조회
 uv run dev-cli models-dev providers
 uv run dev-cli models-dev models openai
 uv run dev-cli models-dev model openai gpt-4o
 
-# Agent Skill 배포 (수정 후)
-npx skills add -g -y skills-src/memory
 ```
 
 ## 환경변수
