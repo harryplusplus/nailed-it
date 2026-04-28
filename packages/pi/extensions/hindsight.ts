@@ -72,10 +72,7 @@ export default async function (pi: ExtensionAPI) {
   pi.on('session_start', async (_event, ctx) => {
     sessionId = ctx.sessionManager.getSessionId()
     const theme = ctx.ui.theme
-    ctx.ui.setStatus(
-      'hindsight-bank',
-      theme.fg('accent', '🧠 ') + theme.fg('dim', config.bankId),
-    )
+    ctx.ui.setStatus('hindsight-bank', '🧠 ' + theme.fg('dim', config.bankId))
   })
 
   pi.registerMessageRenderer(RECALL_KEY, (message, { expanded }, theme) => {
