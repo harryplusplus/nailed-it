@@ -24,19 +24,13 @@ export default function (pi: ExtensionAPI) {
       if (items.length === 0) continue
       text += '\n' + theme.fg('dim', label)
       for (const u of items) {
-        text += '\n' + theme.fg('dim', `  T${u.turn} -`)
-
-        const parts: string[] = [
-          ` input: ${String(u.input).padStart(7)}`,
-          ` output: ${String(u.output).padStart(7)}`,
-        ]
-        if (u.cacheRead)
-          parts.push(` cache read: ${String(u.cacheRead).padStart(7)}`)
-        if (u.cacheWrite)
-          parts.push(` cache write: ${String(u.cacheWrite).padStart(7)}`)
-        parts.push(` total: ${String(u.totalTokens).padStart(7)}`)
-
-        text += theme.fg('muted', parts.join(''))
+        text += '\n'
+        text += theme.fg('dim', `  T${u.turn} -`)
+        text += theme.fg('muted', ` input: ${u.input}`)
+        text += theme.fg('muted', `, output: ${u.output}`)
+        text += theme.fg('muted', `, cache read: ${u.cacheRead}`)
+        text += theme.fg('muted', `, cache write: ${u.cacheWrite}`)
+        text += theme.fg('muted', `, total: ${u.totalTokens}`)
       }
     }
 
