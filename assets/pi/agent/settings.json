@@ -1,7 +1,7 @@
 {
-  "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-pro",
-  "defaultThinkingLevel": "xhigh",
+  "defaultProvider": "crof",
+  "defaultModel": "deepseek-v4-pro-precision",
+  "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
     "../../repo/nailed-it/packages/pi"
@@ -10,5 +10,5 @@
   "skills": [
     "!find-skills"
   ],
-  "hideThinkingBlock": false
+  "hideThinkingBlock": true
 }
