@@ -1,6 +1,6 @@
 {
-  "defaultProvider": "crof",
-  "defaultModel": "deepseek-v4-pro-precision",
+  "defaultProvider": "ollama-cloud",
+  "defaultModel": "deepseek-v4-pro:cloud",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
