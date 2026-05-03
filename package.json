@@ -16,7 +16,8 @@
     "oxfmt": "^0.46.0",
     "oxlint": "^1.60.0",
     "oxlint-tsgolint": "^0.21.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
   },
   "engines": {
     "node": ">=24"
