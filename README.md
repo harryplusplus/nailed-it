@@ -24,7 +24,7 @@ tmux new -s hs-web pnpm hindsight-control-plane
 
 ```sh
 uv sync --all-packages
-pnpm i
+CXXFLAGS=-std=c++20 pnpm i
 ```
 
 ## 구조

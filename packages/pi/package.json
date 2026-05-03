@@ -7,18 +7,20 @@
   "type": "module",
   "dependencies": {
     "@vectorize-io/hindsight-client": "^0.5.4",
-    "js-tiktoken": "^1.0.21"
+    "js-tiktoken": "^1.0.21",
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-bash": "^0.25.1"
   },
   "devDependencies": {
-    "@mariozechner/pi-ai": "^0.70.2",
-    "@mariozechner/pi-coding-agent": "^0.70.2",
-    "@mariozechner/pi-tui": "^0.70.2",
+    "@mariozechner/pi-ai": "^0.72.1",
+    "@mariozechner/pi-coding-agent": "^0.72.1",
+    "@mariozechner/pi-tui": "^0.72.1",
     "typebox": "^1.1.32"
   },
   "peerDependencies": {
-    "@mariozechner/pi-ai": "*",
-    "@mariozechner/pi-coding-agent": "*",
-    "@mariozechner/pi-tui": "*",
+    "@mariozechner/pi-ai": "^0.72.1",
+    "@mariozechner/pi-coding-agent": "^0.72.1",
+    "@mariozechner/pi-tui": "^0.72.1",
     "typebox": "*"
   },
   "pi": {
@@ -32,7 +34,8 @@
       "extensions/notify.ts",
       "extensions/rg.ts",
       "extensions/temperature-zero.ts",
-      "extensions/usages.ts"
+      "extensions/usages.ts",
+      "extensions/bash.ts"
     ]
   }
 }
