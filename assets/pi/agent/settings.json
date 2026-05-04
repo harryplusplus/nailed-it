@@ -1,6 +1,6 @@
 {
-  "defaultProvider": "ollama-cloud",
-  "defaultModel": "kimi-k2.6:cloud",
+  "defaultProvider": "crof",
+  "defaultModel": "glm-5.1-precision",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
