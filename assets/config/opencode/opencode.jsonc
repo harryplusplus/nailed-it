@@ -12,8 +12,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Crof",
       "options": {
-        "baseURL": "http://localhost:8100/v1",
-        // "baseURL": "https://crof.ai/v1",
+        "baseURL": "https://crof.ai/v1",
         "apiKey": "{env:CROF_API_KEY}",
       },
       "models": {
