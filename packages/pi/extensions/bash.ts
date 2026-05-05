@@ -21,7 +21,7 @@ export default async function (pi: ExtensionAPI) {
               ...event.content,
               {
                 type: 'text' as const,
-                text: `> ⚠️ rg argument uses '\\|' escape. In Rust regex '\\|' matches literal '|', NOT alternation. Unlike grep/ERE, '|' does NOT need escaping. To match literal '|', use '[|]'.\n${details}`,
+                text: `> ⚠️ rg argument uses '\\|'. In Rust regex, alternation is bare '|' (no backslash).\n>    Instead of:  foo\\|bar\n>    Use:         foo|bar\n>    (To match a literal '|', write '[|]' instead.)\n${details}`,
               },
             ],
           }

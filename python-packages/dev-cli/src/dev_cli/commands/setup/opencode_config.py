@@ -24,9 +24,4 @@ def setup_opencode_config() -> None:
         raise RuntimeError(msg)
     print(f"  opencode {result.stdout.strip()}", file=sys.stderr)
 
-    print("Linking OpenCode plugins...")
-    src_dir = REPO_ROOT / "packages" / "opencode" / "plugins"
-    dest_dir = Path.home() / ".config" / "opencode" / "plugins"
-    link_file(src_dir, dest_dir, "temperature-zero.ts")
-
     print("OpenCode setup complete!")
