@@ -44,7 +44,7 @@ const DEFAULT_CONFIG = {
   apiUrl: 'http://localhost:8888',
   apiKey: undefined,
   bankId: 'openclaw',
-  autoRecall: false,
+  autoRecall: true,
   autoRetain: true,
   recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
@@ -103,6 +103,8 @@ export default async function (pi: ExtensionAPI) {
   })
 
   pi.on('before_agent_start', async (event, ctx) => {
+    pendingRecallResult = null
+
     if (!config.autoRecall) return
 
     const rawQuery = event.prompt.trim()
@@ -120,14 +122,16 @@ export default async function (pi: ExtensionAPI) {
     try {
       const result = await performRecall(client, config, query)
 
-      pi.sendMessage({
-        customType: RECALL_KEY,
-        content: '',
-        display: true,
-        details: result.details,
-      })
-
       pendingRecallResult = result
+
+      return {
+        message: {
+          customType: RECALL_KEY,
+          content: '',
+          display: true,
+          details: result.details,
+        },
+      }
     } catch (err) {
       ctx.ui.notify(`Hindsight recall failed: ${formatError(err)}`, 'error')
     }
@@ -137,7 +141,6 @@ export default async function (pi: ExtensionAPI) {
     let messages = filterRecallMessages(event.messages)
 
     const recallResult = pendingRecallResult
-    pendingRecallResult = null
 
     if (recallResult?.text) {
       const memoryBlock = buildMemoryBlock(recallResult.text)
@@ -147,7 +150,7 @@ export default async function (pi: ExtensionAPI) {
         messages = messages.map((m, i) => {
           if (i !== lastUserIdx || m.role !== 'user') return m
           if (typeof m.content === 'string') {
-            return { ...m, content: memoryBlock + '\n\n' + m.content }
+            return { ...m, content: memoryBlock + m.content }
           }
 
           const textContent: TextContent = { type: 'text', text: memoryBlock }
@@ -281,6 +284,8 @@ function buildMemoryBlock(text: string): string {
     '',
     text,
     '</hindsight_memories>',
+    '',
+    '',
   ].join('\n')
 }
 
