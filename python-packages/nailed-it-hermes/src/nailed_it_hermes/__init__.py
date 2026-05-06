@@ -14,11 +14,20 @@ def _on_pre_api_request(**kwargs: Any) -> None:  # noqa: ANN401
     if api_kwargs is None or not isinstance(api_kwargs, dict):
         return
 
-    casted = cast("dict[str, Any]", api_kwargs)
-    model = casted.get("model", "")
-    if model.startswith("deepseek"):
-        casted["reasoning_effort"] = "max"
-    else:
-        casted["reasoning_effort"] = "high"
+    api_kwargs = cast("dict[str, Any]", api_kwargs)
+    api_kwargs["temperature"] = 0
 
-    casted["temperature"] = 0
+    model = cast("str", api_kwargs.get("model", ""))
+    if model.startswith("deepseek"):
+        api_kwargs["reasoning_effort"] = "max"
+    else:
+        api_kwargs["reasoning_effort"] = "high"
+
+    provider = kwargs.get("provider")
+    if provider == "crof":
+        if model == "kimi-k2.6-precision":
+            api_kwargs["max_tokens"] = 262144
+        elif model == "glm-5.1-precision":
+            api_kwargs["max_tokens"] = 202752
+        elif model == "deepseek-v4-pro-precision":
+            api_kwargs["max_tokens"] = 131072
