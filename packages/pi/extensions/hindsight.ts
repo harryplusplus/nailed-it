@@ -3,8 +3,8 @@ import type {
   ExtensionAPI,
   ExtensionContext,
   SessionMessageEntry,
-} from '@mariozechner/pi-coding-agent'
-import { Box, Text, TUI } from '@mariozechner/pi-tui'
+} from '@earendil-works/pi-coding-agent'
+import { Box, Text, TUI } from '@earendil-works/pi-tui'
 import {
   Budget,
   HindsightClient,
@@ -17,7 +17,7 @@ import {
   TextContent,
   ToolResultMessage,
   UserMessage,
-} from '@mariozechner/pi-ai'
+} from '@earendil-works/pi-ai'
 
 type AgentMessage = AgentEndEvent['messages'][number]
 type BashExecutionMessage = Extract<AgentMessage, { role: 'bashExecution' }>

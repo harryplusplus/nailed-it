@@ -1,5 +1,5 @@
-import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
-import type { AssistantMessage } from '@mariozechner/pi-ai'
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
+import type { AssistantMessage } from '@earendil-works/pi-ai'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 

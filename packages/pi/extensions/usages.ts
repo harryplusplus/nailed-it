@@ -1,6 +1,6 @@
-import { Usage } from '@mariozechner/pi-ai'
-import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
-import { Text } from '@mariozechner/pi-tui'
+import { Usage } from '@earendil-works/pi-ai'
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
+import { Text } from '@earendil-works/pi-tui'
 
 const CUSTOM_TYPE = 'usage'
 

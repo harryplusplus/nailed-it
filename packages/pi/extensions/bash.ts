@@ -1,4 +1,4 @@
-import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
 import Parser from 'tree-sitter'
 import Bash from 'tree-sitter-bash'
 import { findRgPipeEscape } from '../src/bash.js'

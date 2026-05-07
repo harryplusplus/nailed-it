@@ -1,6 +1,6 @@
-import type { ExtensionAPI } from '@mariozechner/pi-coding-agent'
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
 import { Static, Type } from 'typebox'
-import { Text } from '@mariozechner/pi-tui'
+import { Text } from '@earendil-works/pi-tui'
 
 const TavilySearchResponse = Type.Object({
   query: Type.String(),
