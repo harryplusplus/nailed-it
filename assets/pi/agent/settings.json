@@ -4,6 +4,9 @@
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
+    "npm:pi-subagents",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@juicesharp/rpiv-todo",
     "../../repo/nailed-it/packages/pi"
   ],
   "lastChangelogVersion": "0.74.0",
