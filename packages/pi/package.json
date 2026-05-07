@@ -26,16 +26,15 @@
   "pi": {
     "extensions": [
       "extensions/activate-skill.ts",
+      "extensions/bash.ts",
       "extensions/elapsed-time.ts",
       "extensions/fd.ts",
       "extensions/gh.ts",
       "extensions/hindsight.ts",
-      "extensions/max-tokens.ts",
       "extensions/notify.ts",
       "extensions/rg.ts",
       "extensions/temperature-zero.ts",
-      "extensions/usages.ts",
-      "extensions/bash.ts"
+      "extensions/usages.ts"
     ]
   }
 }

@@ -4,5 +4,5 @@
   "bank_id": "openclaw",
   "recall_budget": "mid",
   "retain_tags": ["hermes"],
-  "auto_recall": false
+  "auto_recall": true
 }

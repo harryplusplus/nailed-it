@@ -136,14 +136,14 @@
           "id": "kimi-k2.5-lightning",
           "reasoning": true,
           "contextWindow": 131072,
-          "maxTokens": 32768,
+          "maxTokens": 16384,
           "input": ["text", "image"]
         },
         {
           "id": "kimi-k2.6-precision",
           "reasoning": true,
           "contextWindow": 262144,
-          "maxTokens": 262144,
+          "maxTokens": 16384,
           "input": ["text", "image"]
         },
         {

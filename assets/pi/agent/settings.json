@@ -1,7 +1,7 @@
 {
   "defaultProvider": "crof",
-  "defaultModel": "deepseek-v4-pro-precision",
-  "defaultThinkingLevel": "xhigh",
+  "defaultModel": "kimi-k2.6-precision",
+  "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
     "../../repo/nailed-it/packages/pi"

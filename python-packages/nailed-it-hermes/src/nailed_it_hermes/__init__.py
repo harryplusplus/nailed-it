@@ -26,7 +26,7 @@ def _on_pre_api_request(**kwargs: Any) -> None:  # noqa: ANN401
     provider = kwargs.get("provider")
     if provider == "crof":
         if model == "kimi-k2.6-precision":
-            api_kwargs["max_tokens"] = 262144
+            api_kwargs["max_tokens"] = 16384
         elif model == "glm-5.1-precision":
             api_kwargs["max_tokens"] = 202752
         elif model == "deepseek-v4-pro-precision":
