@@ -3,11 +3,6 @@
   "permission": { "*": "allow" },
   "plugin": ["@warp-dot-dev/opencode-warp"],
   "provider": {
-    "ollama-cloud": {
-      "models": {
-        "glm-5.1": { "variants": { "high": { "reasoningEffort": "high" } } },
-      },
-    },
     "crof": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Crof",
@@ -35,7 +30,7 @@
           "modalities": { "input": ["text", "image"], "output": ["text"] },
           "limit": {
             "context": 262144,
-            "output": 262144,
+            "output": 16384,
           },
           "variants": {
             "high": { "reasoningEffort": "high", "temperature": 0 },
