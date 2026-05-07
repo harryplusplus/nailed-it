@@ -14,7 +14,7 @@ Hindsight 장기기억 + Pi Coding Agent + Hermes Agent + 각종 도구들.
 
 ```sh
 # Hindsight API 서버
-tmux new -s hs-api uv run --env-file .env hindsight-api
+tmux new -s hs-api uv run --env-file .env hs-api
 
 # Hindsight 웹 대시보드
 tmux new -s hs-web pnpm hindsight-control-plane

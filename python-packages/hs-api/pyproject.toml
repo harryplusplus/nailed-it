@@ -3,3 +3,9 @@ name = "hs-api"
 version = "0.0.0"
 description = "Hindsight API server"
 dependencies = ["hindsight-api-slim>=0.6.0", "sentence-transformers>=5.4.1"]
+
+[project.scripts]
+hs-api = "hindsight_api.main:main"
+
+[tool.uv]
+package = true

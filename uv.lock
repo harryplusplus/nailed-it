@@ -1105,7 +1105,7 @@ wheels = [
 [[package]]
 name = "hs-api"
 version = "0.0.0"
-source = { virtual = "python-packages/hs-api" }
+source = { editable = "python-packages/hs-api" }
 dependencies = [
     { name = "hindsight-api-slim" },
     { name = "sentence-transformers" },
