@@ -2,15 +2,12 @@
 #
 # Environment variables required:
 #   CROF_API_KEY              — CrofAI API key
-#   LF_HINDSIGHT_PUBLIC_KEY   — Langfuse hindsight project public key
-#   LF_HINDSIGHT_SECRET_KEY   — Langfuse hindsight project secret key
+#   LANGFUSE_PUBLIC_KEY       — Langfuse hindsight project public key
+#   LANGFUSE_SECRET_KEY       — Langfuse hindsight project secret key
+#   LANGFUSE_OTEL_HOST        — Langfuse OTLP endpoint (self-hosted: http://localhost:3000)
 
-# Run: litellm --config config.yaml
+# Run: uvx --python 3.13 litellm --config config.yaml --port 4000 --host 127.0.0.1
 # From: ~/.ll-hs/
-
-general_settings:
-  port: 4000
-  host: 127.0.0.1
 
 model_list:
   - model_name: glm-5.1-precision
@@ -20,7 +17,4 @@ model_list:
       api_key: os.environ/CROF_API_KEY
 
 litellm_settings:
-  callbacks: [langfuse]
-  langfuse_public_key: os.environ/LF_HINDSIGHT_PUBLIC_KEY
-  langfuse_secret_key: os.environ/LF_HINDSIGHT_SECRET_KEY
-  langfuse_host: http://localhost:3000
+  callbacks: [langfuse_otel]
