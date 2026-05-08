@@ -13,7 +13,11 @@ def setup_ll_hs() -> None:
     # Step 1: Install litellm via uv tool (isolated from workspace)
     print("Installing/updating litellm...")
     subprocess.run(
-        ["uv", "tool", "install", "litellm[proxy]", "--python", "3.13"],
+        [
+            "uv", "tool", "install", "--force",
+            "litellm[proxy]", "--python", "3.13",
+            "--with", "langfuse",
+        ],
         check=True,
     )
 
@@ -25,22 +29,10 @@ def setup_ll_hs() -> None:
         "config.yaml",
     )
 
-    # Verify litellm is installed as a uv tool
+    # Verify litellm works via uvx
     print("Verifying litellm...")
-    result = subprocess.run(
-        ["uv", "tool", "list"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    if "litellm" not in result.stdout:
-        msg = (
-            "litellm not found in uv tools."
-            " Run 'uv tool install litellm[proxy] --python 3.13'"
-        )
-        raise RuntimeError(msg)
     version = subprocess.run(
-        ["uv", "tool", "run", "--python", "3.13", "litellm", "--version"],
+        ["uvx", "--python", "3.13", "litellm", "--version"],
         capture_output=True,
         text=True,
         check=True,
@@ -60,3 +52,5 @@ def setup_ll_hs() -> None:
     print()
     print("3. Update Hindsight .env:")
     print("   HINDSIGHT_API_LLM_BASE_URL=http://localhost:4000")
+    print()
+
