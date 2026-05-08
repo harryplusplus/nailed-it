@@ -1,6 +1,6 @@
 # Nailed It!
 
-잘했어! (🫠)
+잘했어! (...🫠)
 
 Hindsight + Langfuse + Pi + Hermes + 기타 등등.
 
