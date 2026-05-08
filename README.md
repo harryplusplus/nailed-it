@@ -8,23 +8,49 @@ Hindsight 장기기억 + Pi Coding Agent + Hermes Agent + 각종 도구들.
 
 - Python 3.14
 - Node.js 24
-- PostgreSQL 18
-
-## 실행
-
-```sh
-# Hindsight API 서버
-tmux new -s hs-api uv run --env-file .env hs-api
-
-# Hindsight 웹 대시보드
-tmux new -s hs-web pnpm hindsight-control-plane
-```
+- PostgreSQL 18 (brew)
+- Docker
 
 ## 의존성 설치
 
 ```sh
 uv sync --all-packages
 CXXFLAGS=-std=c++20 pnpm i
+```
+
+## 설정
+
+```sh
+# 서브모듈 초기화
+uv run dev-cli setup git-submodules
+
+# PostgreSQL 확장 설치
+uv run dev-cli setup pg-config
+
+# LiteLLM for Hindsight
+uv run dev-cli setup ll-hs
+
+# Hindsight API
+uv run dev-cli setup hs-api
+
+# Hindsight Web
+uv run dev-cli setup hs-web
+```
+
+## 실행
+
+```sh
+# Langfuse
+cd external/langfuse && docker compose up -d
+
+# LiteLLM for Hindsight
+sh assets/ll-hs/run.sh
+
+# Hindsight API
+sh assets/hs-api/run.sh
+
+# Hindsight Web
+sh assets/hs-web/run.sh
 ```
 
 ## 구조
@@ -36,6 +62,9 @@ python-packages/
 │       ├── setup/                  # 개발 환경 설정
 │       │   ├── git_submodules.py   # 서브모듈 초기화
 │       │   ├── hermes_config.py    # Hermes Agent 설정
+│       │   ├── hs_api.py           # Hindsight API (uv tool)
+│       │   ├── hs_web.py           # Hindsight Web (npm global)
+│       │   ├── ll_hs.py            # LiteLLM for Hindsight (uv tool)
 │       │   ├── opencode_config.py  # OpenCode 설정
 │       │   ├── pg_config.py        # PostgreSQL 확장 설치
 │       │   ├── pi_config.py        # Pi Coding Agent 설정
@@ -47,6 +76,7 @@ packages/
 ├── pi/                     # Pi Coding Agent 확장 모음
 │   └── extensions/
 │       ├── activate-skill.ts   # 스킬 활성화
+│       ├── bash.ts             # bash 실행
 │       ├── elapsed-time.ts     # 경과 시간 표시
 │       ├── fd.ts               # fd 검색
 │       ├── find.ts             # find 검색
@@ -59,23 +89,16 @@ packages/
 │       ├── rg.ts               # ripgrep 검색
 │       ├── tavily.ts           # Tavily 검색 및 추출
 │       ├── temperature-zero.ts # temperature 0 설정
-│       ├── usage.ts            # 토큰 사용량 표시
+│       ├── usages.ts           # 사용량 조회
 │       ├── web-fetch.ts        # 웹 페이지 페치
 │       └── web-search.ts       # 웹 검색
-└── opencode/               # OpenCode 플러그인
 
 skills-src/
-├── tavily/                      # Tavily 검색 및 추출
-├── web-search/                  # 웹 검색
-├── web-fetch/                   # 웹 페이지 페치
 ├── memory/                      # Hindsight 장기기억
-├── agent-skills-dev/            # 스킬 개발/스캐폴드
-├── agent-skills-review/         # 스킬 검수
-├── agent-skills-python-dev/     # 스킬 Python 품질 검사
-└── agent-skills-typescript-dev/ # 스킬 TypeScript 품질 검사
+└── tavily/                      # Tavily 검색 및 추출
 
 external/
-├── hindsight/          # Hindsight API (서브모듈)
+├── langfuse/           # Langfuse observability (docker compose)
 ├── hermes-agent/       # Hermes Agent (서브모듈)
 ├── VectorChord/        # 벡터 검색 pg extension
 ├── VectorChord-bm25/   # BM25 pg extension
@@ -97,6 +120,15 @@ uv run dev-cli setup git-submodules
 # Hermes Agent (venv 생성 → 의존성 설치 → config/plugin/명령어 링크)
 uv run dev-cli setup hermes-config
 
+# LiteLLM for Hindsight (uv tool)
+uv run dev-cli setup ll-hs
+
+# Hindsight API (uv tool)
+uv run dev-cli setup hs-api
+
+# Hindsight Web (npm global)
+uv run dev-cli setup hs-web
+
 # OpenCode 설정 파일 링크
 uv run dev-cli setup opencode-config
 
@@ -113,12 +145,12 @@ uv run dev-cli setup global-skills
 uv run dev-cli models-dev providers
 uv run dev-cli models-dev models openai
 uv run dev-cli models-dev model openai gpt-4o
-
 ```
 
 ## 환경변수
 
-`.env.example` 참고.
+- `.env.hs-api` — Hindsight API
+- `.env.ll-hs` — LiteLLM for Hindsight (Langfuse, CrofAI)
 
 ## 라이선스
 
