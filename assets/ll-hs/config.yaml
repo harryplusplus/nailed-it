@@ -6,7 +6,7 @@
 #   LANGFUSE_SECRET_KEY       — Langfuse hindsight project secret key
 #   LANGFUSE_OTEL_HOST        — Langfuse OTLP endpoint (self-hosted: http://localhost:3000)
 
-# Run: uvx --python 3.13 litellm --config config.yaml --port 4000 --host 127.0.0.1
+# Run: uvx --python 3.13 litellm --config config.yaml --port 8100 --host 127.0.0.1
 # From: ~/.ll-hs/
 
 model_list:

@@ -16,6 +16,9 @@ def setup_ll_hs() -> None:
         [
             "uv", "tool", "install",
             "litellm[proxy]", "--python", "3.13",
+            "--with", "opentelemetry-api",
+            "--with", "opentelemetry-sdk",
+            "--with", "opentelemetry-exporter-otlp",
         ],
         check=True,
     )
@@ -43,13 +46,12 @@ def setup_ll_hs() -> None:
     print()
     print("1. Set required environment variables:")
     print("   export CROF_API_KEY=...")
-    print("   export LANGFUSE_PUBLIC_KEY=...")
-    print("   export LANGFUSE_SECRET_KEY=...")
-    print("   export LANGFUSE_OTEL_HOST=http://localhost:3000")
+    print("   export LF_HINDSIGHT_PUBLIC_KEY=...")
+    print("   export LF_HINDSIGHT_SECRET_KEY=...")
     print()
     print("2. Start the proxy:")
     print("   sh assets/ll-hs/run.sh")
     print()
     print("3. Update Hindsight .env:")
-    print("   HINDSIGHT_API_LLM_BASE_URL=http://localhost:4000")
+    print("   HINDSIGHT_API_LLM_BASE_URL=http://localhost:8100")
     print()
