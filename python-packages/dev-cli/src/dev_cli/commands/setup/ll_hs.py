@@ -14,7 +14,7 @@ def setup_ll_hs() -> None:
     print("Installing/updating litellm...")
     subprocess.run(
         [
-            "uv", "tool", "install", "--force",
+            "uv", "tool", "install",
             "litellm[proxy]", "--python", "3.13",
             "--with", "langfuse",
         ],
