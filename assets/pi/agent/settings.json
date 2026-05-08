@@ -1,6 +1,6 @@
 {
   "defaultProvider": "crof",
-  "defaultModel": "kimi-k2.6-precision",
+  "defaultModel": "glm-5.1-precision",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [

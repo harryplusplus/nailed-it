@@ -13,7 +13,7 @@ def setup_ll_hs() -> None:
     # Step 1: Install litellm via uv tool (isolated from workspace)
     print("Installing/updating litellm...")
     subprocess.run(
-        ["uv", "tool", "install", "litellm", "--python", "3.13"],
+        ["uv", "tool", "install", "litellm[proxy]", "--python", "3.13"],
         check=True,
     )
 
@@ -25,17 +25,27 @@ def setup_ll_hs() -> None:
         "config.yaml",
     )
 
-    # Step 4: Verify litellm works
+    # Verify litellm is installed as a uv tool
     print("Verifying litellm...")
     result = subprocess.run(
-        ["litellm", "--version"],
+        ["uv", "tool", "list"],
         capture_output=True,
         text=True,
+        check=True,
     )
-    if result.returncode != 0:
-        msg = "litellm command not found"
+    if "litellm" not in result.stdout:
+        msg = (
+            "litellm not found in uv tools."
+            " Run 'uv tool install litellm[proxy] --python 3.13'"
+        )
         raise RuntimeError(msg)
-    print(f"  {result.stdout.strip()}", file=sys.stderr)
+    version = subprocess.run(
+        ["uv", "tool", "run", "--python", "3.13", "litellm", "--version"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    print(f"  {version}", file=sys.stderr)
 
     print()
     print("Setup complete!")
