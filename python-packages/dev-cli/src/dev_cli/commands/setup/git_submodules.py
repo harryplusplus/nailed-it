@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 HERMES_AGENT_DIR = REPO_ROOT / "external" / "hermes-agent"
-HINDSIGHT_DIR = REPO_ROOT / "external" / "hindsight"
+LANGFUSE_DIR = REPO_ROOT / "external" / "langfuse"
 
 
 def _run(cmd: list[str], cwd: Path) -> None:
@@ -72,7 +72,7 @@ def setup_git_submodules() -> None:
         "https://github.com/NousResearch/hermes-agent.git",
     )
     _update_submodule(
-        HINDSIGHT_DIR,
-        "Hindsight",
-        "https://github.com/vectorize-io/hindsight.git",
+        LANGFUSE_DIR,
+        "Langfuse",
+        "https://github.com/langfuse/langfuse.git",
     )
