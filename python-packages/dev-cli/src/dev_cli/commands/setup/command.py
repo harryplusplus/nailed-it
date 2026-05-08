@@ -2,6 +2,7 @@ import typer
 from dev_cli.commands.setup.git_submodules import setup_git_submodules
 from dev_cli.commands.setup.global_skills import setup_global_skills
 from dev_cli.commands.setup.hermes_config import setup_hermes_config
+from dev_cli.commands.setup.ll_hs import setup_ll_hs
 from dev_cli.commands.setup.opencode_config import setup_opencode_config
 from dev_cli.commands.setup.pg_config import setup_pg_config
 from dev_cli.commands.setup.pi_config import setup_pi_config
@@ -19,6 +20,12 @@ def git_submodules() -> None:
 def hermes_config() -> None:
     """Link hermes config and binary, check hermes command."""
     setup_hermes_config()
+
+
+@app.command()
+def ll_hs() -> None:
+    """Set up LiteLLM proxy for Hindsight."""
+    setup_ll_hs()
 
 
 @app.command()

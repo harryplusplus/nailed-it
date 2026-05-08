@@ -1,0 +1,22 @@
+# LiteLLM proxy config for Hindsight
+#
+# Environment variables required:
+#   CROF_API_KEY              — CrofAI API key
+#   LF_HINDSIGHT_PUBLIC_KEY   — Langfuse hindsight project public key
+#   LF_HINDSIGHT_SECRET_KEY   — Langfuse hindsight project secret key
+
+# Run: litellm --config config.yaml --port 4000
+# From: ~/.ll-hs/
+
+model_list:
+  - model_name: glm-5.1-precision
+    litellm_params:
+      model: openai/glm-5.1-precision
+      api_base: https://crof.ai/v1
+      api_key: os.environ/CROF_API_KEY
+
+litellm_settings:
+  callbacks: [langfuse]
+  langfuse_public_key: os.environ/LF_HINDSIGHT_PUBLIC_KEY
+  langfuse_secret_key: os.environ/LF_HINDSIGHT_SECRET_KEY
+  langfuse_host: http://localhost:3000
