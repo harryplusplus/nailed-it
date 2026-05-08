@@ -14,7 +14,7 @@ def setup_hs_api() -> None:
     subprocess.run(
         [
             "uv", "tool", "install",
-            "hindsight-api-slim",
+            "hindsight-api-slim==0.6.0",
             "--with", "sentence-transformers",
         ],
         check=True,
