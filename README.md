@@ -1,8 +1,8 @@
 # Nailed It!
 
-에이전트의, 에이전트에 의한, 에이전트를 위한 환경.
+잘했어! (🫠)
 
-Hindsight 장기기억 + Pi Coding Agent + Hermes Agent + 각종 도구들.
+Hindsight + Langfuse + Pi + Hermes + 기타 등등.
 
 ## 내 환경
 
