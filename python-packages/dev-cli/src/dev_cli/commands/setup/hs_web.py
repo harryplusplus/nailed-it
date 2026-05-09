@@ -11,8 +11,10 @@ def setup_hs_web() -> None:
     print("Installing/updating hindsight-control-plane...")
     subprocess.run(
         [
-            "npm", "i", "-g",
-            "@vectorize-io/hindsight-control-plane@0.6.0",
+            "npm",
+            "i",
+            "-g",
+            "@vectorize-io/hindsight-control-plane@0.6.1",
         ],
         check=True,
     )
