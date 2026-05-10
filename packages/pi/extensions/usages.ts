@@ -92,6 +92,8 @@ export default function (pi: ExtensionAPI) {
 
   pi.on('agent_end', (_event, ctx) => {
     if (ctx.signal?.aborted) return
+    if (!ctx.hasUI) return
+
     pi.sendMessage({
       customType: CUSTOM_TYPE,
       content: '',
