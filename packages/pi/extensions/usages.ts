@@ -91,18 +91,22 @@ export default function (pi: ExtensionAPI) {
   })
 
   pi.on('agent_end', (_event, ctx) => {
-    if (ctx.signal?.aborted) return
-    if (!ctx.hasUI) return
+    try {
+      if (ctx.signal?.aborted) return
 
-    pi.sendMessage({
-      customType: CUSTOM_TYPE,
-      content: '',
-      display: true,
-      details: {
-        previousUsages: [...previousUsages],
-        currentUsages: [...currentUsages],
-      } satisfies UsageData,
-    })
+      pi.sendMessage({
+        customType: CUSTOM_TYPE,
+        content: '',
+        display: true,
+        details: {
+          previousUsages: [...previousUsages],
+          currentUsages: [...currentUsages],
+        } satisfies UsageData,
+      })
+    } catch {
+      // Extension context or runtime is stale after session replacement/reload.
+      // Silently ignore — usage data is meaningless when session is being torn down.
+    }
   })
 
   pi.on('context', async event => {
