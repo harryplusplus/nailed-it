@@ -1,6 +1,6 @@
 {
   "defaultProvider": "crof",
-  "defaultModel": "glm-5.1-precision",
+  "defaultModel": "mimo-v2.5-pro-precision",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
@@ -9,7 +9,7 @@
     "npm:@juicesharp/rpiv-todo",
     "../../repo/nailed-it/packages/pi"
   ],
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.75.0",
   "skills": [],
   "hideThinkingBlock": true
 }

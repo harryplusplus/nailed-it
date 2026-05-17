@@ -44,6 +44,12 @@
           "reasoning": true,
           "contextWindow": 202752,
           "maxTokens": 202752
+        },
+        {
+          "id": "mimo-v2.5-pro-precision",
+          "reasoning": true,
+          "contextWindow": 1000000,
+          "maxTokens": 131072
         }
       ]
     }
