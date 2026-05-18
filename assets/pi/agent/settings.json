@@ -9,7 +9,7 @@
     "npm:@juicesharp/rpiv-todo",
     "../../repo/nailed-it/packages/pi"
   ],
-  "lastChangelogVersion": "0.75.0",
+  "lastChangelogVersion": "0.75.3",
   "skills": [],
   "hideThinkingBlock": true
 }
