@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import Parser from 'tree-sitter'
 import Bash from 'tree-sitter-bash'
-import { findRgPipeEscape } from './bash.js'
+import { findRgPipeEscape, replaceRgPipeEscape } from './bash.js'
 
 const parser = new Parser()
 parser.setLanguage(Bash as unknown as Parser.Language)
@@ -102,5 +102,61 @@ describe('findRgPipeEscape', () => {
       const result = findRgPipeEscape(parser, 'grep rg "foo\\|bar"')
       expect(result).toHaveLength(0)
     })
+  })
+})
+
+describe('replaceRgPipeEscape', () => {
+  it('replaces \\| in double-quoted string', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'rg "foo\\|bar"')
+    expect(command).toBe('rg "foo|bar"')
+    expect(count).toBe(1)
+  })
+
+  it('replaces \\| in unquoted word', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'rg foo\\|bar')
+    expect(command).toBe('rg foo|bar')
+    expect(count).toBe(1)
+  })
+
+  it('replaces multiple \\| in one argument', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'rg "foo\\|bar\\|baz"')
+    expect(command).toBe('rg "foo|bar|baz"')
+    expect(count).toBe(2)
+  })
+
+  it('replaces \\| in multiple arguments', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'rg "a\\|b" "c\\|d"')
+    expect(command).toBe('rg "a|b" "c|d"')
+    expect(count).toBe(2)
+  })
+
+  it('replaces \\| in pipeline second command', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'ps aux | rg "foo\\|bar"')
+    expect(command).toBe('ps aux | rg "foo|bar"')
+    expect(count).toBe(1)
+  })
+
+  it('no change when no \\| present', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'rg "foo|bar"')
+    expect(command).toBe('rg "foo|bar"')
+    expect(count).toBe(0)
+  })
+
+  it('no change for non-rg commands', () => {
+    const { command, count } = replaceRgPipeEscape(parser, 'grep "foo\\|bar"')
+    expect(command).toBe('grep "foo\\|bar"')
+    expect(count).toBe(0)
+  })
+
+  it('no change for single-quoted strings', () => {
+    const { command, count } = replaceRgPipeEscape(parser, "rg 'foo\\|bar'")
+    expect(command).toBe("rg 'foo\\|bar'")
+    expect(count).toBe(0)
+  })
+
+  it('empty string returns empty', () => {
+    const { command, count } = replaceRgPipeEscape(parser, '')
+    expect(command).toBe('')
+    expect(count).toBe(0)
   })
 })

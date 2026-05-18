@@ -23,7 +23,7 @@ export interface RgPipeEscape {
  *
  * @param parser - A tree-sitter Bash parser instance (reusable across calls)
  * @param command - The raw bash command string to inspect
- * @returns An array of `RgPipeEscape` objects, one per `\|` found in `rg` args
+ * @returns An array of `RgPipeEscape` objects, one per argument containing `\|`
  */
 export function findRgPipeEscape(
   parser: Parser,
@@ -43,6 +43,51 @@ function visitNode(node: Parser.SyntaxNode, escapes: RgPipeEscape[]): void {
   for (const child of node.children) {
     visitNode(child, escapes)
   }
+}
+
+/**
+ * Replace all `\|` with `|` in `rg` command arguments, and return the
+ * transformed command along with the count of replacements made.
+ *
+ * This is the auto-fix counterpart of {@link findRgPipeEscape}. It rewrites
+ * the command string so that Rust regex alternation works as intended, instead
+ * of silently matching a literal `|` character.
+ *
+ * The function is safe to call with any command string — it gracefully handles
+ * parse errors and non-`rg` commands.
+ *
+ * @param parser - A tree-sitter Bash parser instance (reusable across calls)
+ * @param command - The raw bash command string to transform
+ * @returns The (possibly modified) command and the number of replacements made
+ */
+export function replaceRgPipeEscape(
+  parser: Parser,
+  command: string,
+): { command: string; count: number } {
+  const escapes = findRgPipeEscape(parser, command)
+  if (escapes.length === 0) return { command, count: 0 }
+
+  // Collect absolute byte positions of every `\|` within the command string
+  const positions: number[] = []
+  for (const escape of escapes) {
+    let searchIdx = 0
+    while (true) {
+      const relIdx = escape.text.indexOf('\\|', searchIdx)
+      if (relIdx === -1) break
+      positions.push(escape.start + relIdx)
+      searchIdx = relIdx + 2
+    }
+  }
+
+  // Sort descending so earlier indices stay valid as we replace
+  positions.sort((a, b) => b - a)
+
+  let result = command
+  for (const pos of positions) {
+    result = result.slice(0, pos) + '|' + result.slice(pos + 2)
+  }
+
+  return { command: result, count: positions.length }
 }
 
 function checkRgCommand(node: Parser.SyntaxNode, escapes: RgPipeEscape[]): void {
