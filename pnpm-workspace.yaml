@@ -1,5 +1,7 @@
 packages:
-  - "packages/*"
+  - node-packages/*
 allowBuilds:
+  koffi: false
+  protobufjs: false
   tree-sitter: true
   tree-sitter-bash: true

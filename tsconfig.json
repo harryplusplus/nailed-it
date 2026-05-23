@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "types": ["node"],
+    "module": "nodenext",
     "erasableSyntaxOnly": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"],
+    "noEmit": true
   }
 }

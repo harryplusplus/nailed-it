@@ -1,20 +1,26 @@
 # Nailed It!
 
-잘했어! (...🫠)
+Perfection? 💯 Chaos? 🤡
+Harry's AI AgentOps Environment.
 
-Hindsight + Langfuse + Pi + Hermes + 기타 등등.
+## 운영 환경
 
-## 내 환경
-
+- macOS 26.4.1
+- bash 5.3.9 (no zsh)
+- brew
+- uv
+- pnpm
 - Python 3.14
 - Node.js 24
-- PostgreSQL 18 (brew)
+- PostgreSQL 18
 - Docker
 
 ## 의존성 설치
 
 ```sh
 uv sync --all-packages
+
+# tree-sitter
 CXXFLAGS=-std=c++20 pnpm i
 ```
 

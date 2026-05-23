@@ -7,9 +7,8 @@
     "npm:pi-subagents",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-todo",
-    "../../repo/nailed-it/packages/pi"
+    "../../repo/nailed-it/node-packages/pi"
   ],
-  "lastChangelogVersion": "0.75.3",
-  "skills": [],
+  "lastChangelogVersion": "0.75.4",
   "hideThinkingBlock": true
 }

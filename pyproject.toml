@@ -1,12 +1,12 @@
 [project]
 name = "nailed-it"
 version = "0.0.0"
-description = "I nailed it. My AI environment."
+description = "Perfection? 💯 Chaos? 🤡; Harry's AI AgentOps Environment."
 readme = "README.md"
 requires-python = ">=3.14"
 
 [dependency-groups]
-dev = ["pyright>=1.1.409", "ruff>=0.15.12"]
+dev = ["pyrefly>=1.0.0", "ruff>=0.15.12"]
 
 [tool.uv.workspace]
 members = ["python-packages/*"]
@@ -14,35 +14,26 @@ members = ["python-packages/*"]
 [tool.ruff]
 include = [
     "pyproject.toml",
-    "python-packages/**/*.py",
-    "python-packages/**/pyproject.toml",
+    "python-packages/*/src/**/*.py",
+    "python-packages/*/pyproject.toml",
 ]
 
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    # Formatter compatibility.
+    # See https://docs.astral.sh/ruff/rules/missing-trailing-comma/#formatter-compatibility
     "COM812",
-    "D",
-    "INP001",
-    "PLW1510",
-    "S310",
-    "S602",
-    "S603",
-    "S607",
-    "T201",
+    # Formatter compatibility.
+    # See https://docs.astral.sh/ruff/rules/incorrect-blank-line-before-class/#formatter-compatibility
+    "D203",
+    # Google convention compatibility.
+    # See https://docs.astral.sh/ruff/rules/multi-line-summary-second-line/
+    "D213",
 ]
 
-[tool.pyright]
-include = ["python-packages"]
-typeCheckingMode = "strict"
-deprecateTypingAliases = true
-reportMissingModuleSource = "error"
-reportCallInDefaultInitializer = "error"
-reportMissingTypeStubs = "none"
-reportImplicitOverride = "error"
-reportImportCycles = "error"
-reportMissingSuperCall = "error"
-reportPropertyTypeMismatch = "error"
-reportUninitializedInstanceVariable = "error"
-reportUnnecessaryTypeIgnoreComment = "error"
-reportUnreachable = "error"
+[tool.pyrefly]
+project-includes = [
+    "python-packages/*/src/**/*.py",
+    "python-packages/*/tests/**/*.py",
+]
