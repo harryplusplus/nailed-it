@@ -14,8 +14,9 @@ members = ["python-packages/*"]
 [tool.ruff]
 include = [
     "pyproject.toml",
-    "python-packages/*/src/**/*.py",
     "python-packages/*/pyproject.toml",
+    "python-packages/*/src/**/*.py",
+    "python-packages/*/tests/**/*.py",
 ]
 
 [tool.ruff.lint]

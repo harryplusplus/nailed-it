@@ -3,24 +3,23 @@
 Perfection? 💯 Chaos? 🤡
 Harry's AI AgentOps Environment.
 
-## 운영 환경
+## My Environment
 
-- macOS 26.4.1
-- bash 5.3.9 (no zsh)
+- macOS 26.4
+- bash
 - brew
-- uv
-- pnpm
+- uv 0.11
+- pnpm 11
 - Python 3.14
 - Node.js 24
 - PostgreSQL 18
-- Docker
 
-## 의존성 설치
+## Dependencies
 
 ```sh
 uv sync --all-packages
 
-# tree-sitter
+# tree-sitter requires C++20
 CXXFLAGS=-std=c++20 pnpm i
 ```
 
