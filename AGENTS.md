@@ -1,7 +1,8 @@
-# 프로젝트 가이드라인
+# Nailed It! 프로젝트 AI 작업자 가이드라인
 
 - `README.md` — 관리자용. 환경 세팅, 의존성 설치, CLI 사용법.
 - `AGENTS.md` (이 파일) — 에이전트 작업자용. 코드 변경 시 따라야 할 규칙.
+- 커밋 메시지는 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)를 따르세요.
 
 ## Python
 
