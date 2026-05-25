@@ -1,7 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "permission": { "*": "allow" },
-  "plugin": ["@warp-dot-dev/opencode-warp"],
   "provider": {
     "crof": {
       "npm": "@ai-sdk/openai-compatible",
@@ -20,7 +19,7 @@
             "output": 202752,
           },
           "variants": {
-            "high": { "reasoningEffort": "high", "temperature": 0 },
+            "high": { "reasoningEffort": "high", "temperature": 0.0 },
           },
         },
         "kimi-k2.6-precision": {
@@ -33,7 +32,7 @@
             "output": 16384,
           },
           "variants": {
-            "high": { "reasoningEffort": "high", "temperature": 0 },
+            "high": { "reasoningEffort": "high", "temperature": 0.0 },
           },
         },
       },
