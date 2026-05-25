@@ -103,6 +103,21 @@ _SVC_DEFS: list[_SvcDef] = [
         startup_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
         liveness_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
     ),
+    _SvcDef(
+        name="litellm-hermes",
+        run_cmd="uvx"
+        " --from='litellm[proxy]==1.86.0'"
+        " --with=opentelemetry-api==1.42.1"
+        " --with=opentelemetry-sdk==1.42.1"
+        " --with=opentelemetry-exporter-otlp==1.42.1"
+        " --python=3.13"
+        " litellm"
+        f" --config={REPO_ROOT / 'assets' / 'litellm-hermes' / 'config.yaml'}"
+        " --port=8002",
+        run_cwd=Path.home() / ".nailed-it" / "litellm-hermes",
+        startup_cmd="curl -sf http://localhost:8002 > /dev/null 2>&1",
+        liveness_cmd="curl -sf http://localhost:8002 > /dev/null 2>&1",
+    ),
 ]
 
 _LOGS_DIR = Path.home() / ".nailed-it" / "logs"
