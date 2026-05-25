@@ -1,9 +1,0 @@
-model_list:
-  - model_name: glm-5.1-precision
-    litellm_params:
-      model: openai/glm-5.1-precision
-      api_base: https://crof.ai/v1
-      api_key: os.environ/CROF_API_KEY
-
-litellm_settings:
-  callbacks: [langfuse_otel]

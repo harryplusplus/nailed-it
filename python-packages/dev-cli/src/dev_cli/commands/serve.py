@@ -39,10 +39,25 @@ class _SvcDef:
 _SVC_DEFS: list[_SvcDef] = [
     _SvcDef(
         name="phoenix",
-        run_cmd="uvx --from arize-phoenix@16.0.0 phoenix serve",
+        run_cmd="uvx --from=arize-phoenix==16.0.0 phoenix serve",
         startup_cmd="curl -sf http://localhost:6006 > /dev/null 2>&1",
         liveness_cmd="curl -sf http://localhost:6006 > /dev/null 2>&1",
-    )
+    ),
+    _SvcDef(
+        name="litellm-hindsight",
+        run_cmd="uvx"
+        " --from='litellm[proxy]==1.86.0'"
+        " --with=opentelemetry-api==1.42.1"
+        " --with=opentelemetry-sdk==1.42.1"
+        " --with=opentelemetry-exporter-otlp==1.42.1"
+        " --python=3.13"
+        " litellm"
+        f" --config={REPO_ROOT / 'assets' / 'litellm-hindsight' / 'config.yaml'}"
+        " --port=8001",
+        run_cwd=Path.home() / ".nailed-it" / "litellm-hindsight",
+        startup_cmd="curl -sf http://localhost:8001 > /dev/null 2>&1",
+        liveness_cmd="curl -sf http://localhost:8001 > /dev/null 2>&1",
+    ),
 ]
 
 _LOG_DIR_BASE = Path.home() / ".nailed-it" / "logs"
@@ -68,7 +83,7 @@ def _setup_service_logger(svc_name: str, stream_name: str) -> logging.Logger:
         backupCount=_LOG_BACKUP_COUNT,
         encoding="utf-8",
     )
-    handler.setFormatter(logging.Formatter("%(message)s"))
+    handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
     logger.addHandler(handler)
 
     return logger
