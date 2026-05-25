@@ -16,7 +16,10 @@ export default async function (pi: ExtensionAPI) {
     if (!input.command) return
 
     try {
-      const { command: fixed, count } = replaceRgPipeEscape(parser, input.command)
+      const { command: fixed, count } = replaceRgPipeEscape(
+        parser,
+        input.command,
+      )
       if (count > 0) {
         input.command = fixed
         rgPipeFixLog.set(event.toolCallId, { count })

@@ -1,5 +1,5 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
-import { formatDuration } from '../src/common'
+import { formatDuration } from '../src/common.js'
 
 export default function (pi: ExtensionAPI) {
   let agentStartTime: number | null = null

@@ -29,6 +29,7 @@
       "extensions/gh.ts",
       "extensions/grep.ts",
       "extensions/hindsight.ts",
+      "extensions/ls.ts",
       "extensions/notify.ts",
       "extensions/rg.ts",
       "extensions/temperature-zero.ts",

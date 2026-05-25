@@ -11,7 +11,7 @@ import {
   recallResponseToPromptString,
 } from '@vectorize-io/hindsight-client'
 import { getEncoding } from 'js-tiktoken'
-import { formatDuration, formatError } from '../src/common'
+import { formatDuration, formatError } from '../src/common.js'
 import {
   AssistantMessage,
   TextContent,
@@ -44,8 +44,8 @@ const DEFAULT_CONFIG = {
   apiUrl: 'http://localhost:8888',
   apiKey: undefined,
   bankId: 'openclaw',
-  autoRecall: false,
-  autoRetain: false,
+  autoRecall: true,
+  autoRetain: true,
   recallBudget: 'mid' as Budget,
   recallMaxTokens: 4 * 1024,
   recallUserTurns: 3,
