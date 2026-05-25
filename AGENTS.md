@@ -1,50 +1,31 @@
-# Nailed It! 프로젝트 AI 작업자 가이드라인
+# AI 작업자 가이드라인
 
-- `README.md` — 관리자용. 환경 세팅, 의존성 설치, CLI 사용법.
-- `AGENTS.md` (이 파일) — 에이전트 작업자용. 코드 변경 시 따라야 할 규칙.
-- 커밋 메시지는 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)를 따르세요.
+당신은 Nailed It! 프로젝트 AI 작업자입니다. 아래 가이드를 준수하세요.
 
-## Python
+- 모르는 것이 있거나 모호한 부분이 있을 경우에 **절대 함부로 단정하지 말고** 사용자에게 물어보세요.
+- `README.md` — 프로젝트가 무엇이며, 이 프로젝트를 왜 하는지와 같은 프로젝트 전반적인 내용을 다룹니다.
+  - 외부인이 프로젝트를 봤을 때 전반적인 내용을 이해할 수 있어야 합니다.
+- `AGENTS.md` (이 파일) — AI 작업자 
+- Commit 메시지는 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)를 따르세요.
 
-Python 파일을 변경한 뒤에는 반드시 ruff와 pyright를 실행하라:
+## Python 작업 가이드
 
-```bash
-uv run ruff format <path/to/file.py>        # 포맷팅
-uv run ruff check --fix <path/to/file.py>   # 린트 + 자동 수정
-uv run pyright <path/to/file.py>            # 타입 체크
-```
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)를 따르세요.
+  - `pylint` 관련 항목은 제외하세요. 이 프로젝트는 `ruff` 및 `pyrefly`를 사용하기 때문입니다.
+- Python 파일 변경 후 항상 아래 명령줄을 다음과 같은 순서대로 실행하고 경고나 오류가 없도록 수정하세요.
+  - `uv run ruff format <foo.py> <bar.py>`: 포매팅
+  - `uv run ruff check --fix <foo.py> <bar.py>`: 린팅 및 자동 수정
+  - `uv run pyrefly check <foo.py> <bar.py>`: 타입 체킹
 
-오류나 경고는 커밋 전에 모두 수정하라.
+## TypeScript 작업 가이드
 
-## TypeScript
-
-TypeScript 파일을 변경한 뒤에는 반드시 oxfmt와 oxlint를 실행하라:
-
-```bash
-pnpm oxfmt <path/to/file.ts>     # 포맷팅
-pnpm oxlint <path/to/file.ts>    # 린트(타입 체크 포함)
-```
-
-오류나 경고는 커밋 전에 모두 수정하라.
-
-### Node.js 내장 모듈 import 규칙
-
-Node.js 내장 모듈은 named import 대신 default import를 사용하라:
-
-- `node:path` → `import path from 'node:path'`
-- `node:os` → `import os from 'node:os'`
-- `node:fs/promises` → `import fs from 'node:fs/promises'`
-
-기본적으로 Promise 기반인 `node:fs/promises`를 써라. 동기 `node:fs`(`readFileSync`, `existsSync` 등)는 이벤트 루프를 블로킹하니까, non-async 컨텍스트에서 최상위 초기화처럼 환경이 강제하는 경우에만 써라.
-
-이유: 이 모듈들은 flat한 네임스페이스라 `path.join()`, `os.homedir()`, `fs.readFile()` 같은 qualified access에 최적화되어 있다. Destructuring하면 호출 지점이 모호해지고 검색(grep)이 어려워진다.
-
-## package.json
-
-package.json 파일을 변경한 뒤에는 반드시 oxlint를 실행하라:
-
-```bash
-pnpm oxlint <path/to/package.json>    # 린트(타입 체크 포함)
-```
-
-오류나 경고는 커밋 전에 모두 수정하라.
+- TypeScript 파일 변경 후 항상 아래 명령줄을 다음과 같은 순서대로 실행하고 경고나 오류가 없도록 수정하세요.
+  - `pnpm oxfmt <foo.ts> <bar.ts>`: 포매팅
+  - `pnpm oxlint --type-check <foo.ts> <bar.ts>`: 린팅 및 타입 체킹
+- `package.json`을 변경한 후에도 oxfmt를 호출하세요.
+- 함수는 동기 버전 (e.g. fs.readFileSync) 대신에 Promise 버전(e.g. fs.promises.readFile)을 사용하세요.
+  - 동기 버전은 아주 특수한 경우에만 필요하고, 대부분의 어플리케이션 코드에서 필요하지 않습니다.
+- Node.js 내장 모듈은 named import 대신 default import를 사용하세요.
+  - `node:path` → `import path from 'node:path'`
+  - `node:os` → `import os from 'node:os'`
+  - `node:fs` → `import fs from 'node:fs'`
