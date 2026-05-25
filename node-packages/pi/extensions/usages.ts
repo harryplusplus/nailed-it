@@ -28,7 +28,7 @@ export default function (pi: ExtensionAPI) {
           text += '\n'
           text += theme.fg(
             'muted',
-            `  T${u.turn} in:${u.input} out:${u.output} cr:${u.cacheRead} cw:${u.cacheWrite} total:${u.totalTokens}`,
+            `  T${u.turn} in:${u.input} out:${u.output} cache read:${u.cacheRead} cache write:${u.cacheWrite} total:${u.totalTokens}`,
           )
         }
       }
@@ -68,8 +68,8 @@ export default function (pi: ExtensionAPI) {
         `${data.currentUsages.length}t`,
         `in:${sum.input}`,
         `out:${sum.output}`,
-        `cr:${sum.cacheRead}`,
-        `cw:${sum.cacheWrite}`,
+        `cache read:${sum.cacheRead}`,
+        `cache write:${sum.cacheWrite}`,
         `total:${sum.totalTokens}`,
       ]
       text += ' ' + theme.fg('muted', parts.join(' '))
