@@ -7,6 +7,3 @@
 [submodule "external/VectorChord-bm25"]
 	path = external/VectorChord-bm25
 	url = https://github.com/tensorchord/VectorChord-bm25.git
-[submodule "external/hermes-agent"]
-	path = external/hermes-agent
-	url = https://github.com/harryplusplus/hermes-agent.git
