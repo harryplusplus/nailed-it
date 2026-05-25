@@ -10,6 +10,3 @@
 [submodule "external/hermes-agent"]
 	path = external/hermes-agent
 	url = https://github.com/harryplusplus/hermes-agent.git
-[submodule "external/langfuse"]
-	path = external/langfuse
-	url = https://github.com/harryplusplus/langfuse.git
