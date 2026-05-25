@@ -78,7 +78,7 @@ def _pipe_reader(
     stream: IO[bytes],
     logger: logging.Logger,
 ) -> None:
-    """Read lines from *stream* and forward each non-empty line to *logger*."""
+    """Read lines from *stream* and forward them to *logger*."""
     try:
         while True:
             raw_line = stream.readline()
