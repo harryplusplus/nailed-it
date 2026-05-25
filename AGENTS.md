@@ -8,6 +8,20 @@
 - `AGENTS.md` (이 파일) — AI 작업자 
 - Commit 메시지는 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)를 따르세요.
 
+## 리팩터링 가이드
+
+- 리팩터링 후 쓸모없어진 변수는 인라인하고 삭제하세요.
+  - Don't:
+    ```python
+    log_dir = _LOGS_DIR # <- 리팩터링 전에는 _LOG_DIR_BASE / svc_name 이었지만,
+                        #    서브폴더 제거 후엔 그냥 alias일 뿐
+    handler = RotatingFileHandler(str(log_dir / f"{svc_name}.log"), ...)
+    ```
+    Do:
+    ```python
+    handler = RotatingFileHandler(str(_LOGS_DIR / f"{svc_name}.log"), ...)
+    ```
+
 ## Python 작업 가이드
 
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)를 따르세요.

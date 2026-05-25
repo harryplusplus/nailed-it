@@ -60,25 +60,23 @@ _SVC_DEFS: list[_SvcDef] = [
     ),
 ]
 
-_LOG_DIR_BASE = Path.home() / ".nailed-it" / "logs"
+_LOGS_DIR = Path.home() / ".nailed-it" / "logs"
 _LOG_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 _LOG_BACKUP_COUNT = 5
 
 
-def _setup_service_logger(svc_name: str, stream_name: str) -> logging.Logger:
-    """Set up a rotating file logger for a service's stdout or stderr.
+def _setup_service_logger(svc_name: str) -> logging.Logger:
+    """Set up a rotating file logger for a service's combined output.
 
-    Logs are written to ``~/.nailed-it/logs/<svc_name>/<stream_name>.log``
+    Logs are written to ``~/.nailed-it/logs/<svc_name>.log``
     with 10 MB rotation and 5 backup files.
     """
-    log_dir = _LOG_DIR_BASE / svc_name
-
-    logger = logging.getLogger(f"{svc_name}.{stream_name}")
+    logger = logging.getLogger(svc_name)
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
     handler = RotatingFileHandler(
-        str(log_dir / f"{stream_name}.log"),
+        _LOGS_DIR / f"{svc_name}.log",
         maxBytes=_LOG_MAX_BYTES,
         backupCount=_LOG_BACKUP_COUNT,
         encoding="utf-8",
@@ -92,15 +90,16 @@ def _setup_service_logger(svc_name: str, stream_name: str) -> logging.Logger:
 def _pipe_reader(
     stream: IO[bytes],
     logger: logging.Logger,
+    prefix: str,
 ) -> None:
-    """Read lines from *stream* and forward them to *logger*."""
+    """Read lines from *stream* and forward them to *logger* with a [prefix]."""
     try:
         while True:
             raw_line = stream.readline()
             if raw_line == b"":
                 break
             line = raw_line.decode(errors="replace").rstrip()
-            logger.info(line)
+            logger.info("[%s] %s", prefix, line)
     finally:
         stream.close()
 
@@ -188,7 +187,7 @@ def _monitor_servers(
             last_checked[svc_def.name] = now
 
             alive = _check_liveness(
-                svc_def.liveness_cmd,  # type: ignore[arg-type]
+                svc_def.liveness_cmd,
                 svc_def.liveness_cwd,
                 svc_def.liveness_timeout_seconds,
             )
@@ -217,24 +216,22 @@ def run_serve() -> None:
     """Start all configured services sequentially and block until SIGTERM/SIGINT."""
     signal.signal(signal.SIGTERM, lambda signum, _frame: sys.exit(128 + signum))
 
-    # Pre-create all directories upfront
+    # Pre-create log directory and service working directories
+    _LOGS_DIR.mkdir(parents=True, exist_ok=True)
     for svc_def in _SVC_DEFS:
-        (_LOG_DIR_BASE / svc_def.name).mkdir(parents=True, exist_ok=True)
         svc_def.run_cwd.mkdir(parents=True, exist_ok=True)
         svc_def.startup_cwd.mkdir(parents=True, exist_ok=True)
         svc_def.liveness_cwd.mkdir(parents=True, exist_ok=True)
-    (_LOG_DIR_BASE / "main").mkdir(parents=True, exist_ok=True)
 
-    serve_out = _setup_service_logger("main", "stdout")
+    main_logger = _setup_service_logger("main")
 
     processes: list[subprocess.Popen] = []
 
     try:
         for svc_def in _SVC_DEFS:
-            serve_out.info("Starting %s...", svc_def.name)
+            main_logger.info("Starting %s...", svc_def.name)
 
-            stdout_logger = _setup_service_logger(svc_def.name, "stdout")
-            stderr_logger = _setup_service_logger(svc_def.name, "stderr")
+            svc_logger = _setup_service_logger(svc_def.name)
 
             proc = subprocess.Popen(  # noqa: S602
                 svc_def.run_cmd,
@@ -247,28 +244,28 @@ def run_serve() -> None:
 
             threading.Thread(
                 target=_pipe_reader,
-                args=(proc.stdout, stdout_logger),
+                args=(proc.stdout, svc_logger, "stdout"),
                 daemon=True,
             ).start()
             threading.Thread(
                 target=_pipe_reader,
-                args=(proc.stderr, stderr_logger),
+                args=(proc.stderr, svc_logger, "stderr"),
                 daemon=True,
             ).start()
 
-            serve_out.info("  Waiting for %s to be ready...", svc_def.name)
+            main_logger.info("  Waiting for %s to be ready...", svc_def.name)
             _await_service(svc_def)
-            serve_out.info("  %s is ready", svc_def.name)
+            main_logger.info("  %s is ready", svc_def.name)
 
-        serve_out.info("All services are ready. Press Ctrl+C to stop.")
+        main_logger.info("All services are ready. Press Ctrl+C to stop.")
 
-        _monitor_servers(serve_out)
+        _monitor_servers(main_logger)
 
     except RuntimeError:
-        serve_out.exception("Fatal error")
+        main_logger.exception("Fatal error")
         raise
     except KeyboardInterrupt:
-        serve_out.info("Shutting down...")
+        main_logger.info("Shutting down...")
     finally:
         # Reverse order: last started = first killed (dependency order)
         reversed_procs = list(reversed(processes))
