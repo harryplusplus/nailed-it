@@ -7,9 +7,6 @@ from dev_cli.common import REPO_ROOT, check_repo_root
 if TYPE_CHECKING:
     from pathlib import Path
 
-HERMES_AGENT_DIR = REPO_ROOT / "external" / "hermes-agent"
-LANGFUSE_DIR = REPO_ROOT / "external" / "langfuse"
-
 
 def _run(cmd: list[str], cwd: Path) -> None:
     print(f"  $ {' '.join(cmd)}", file=sys.stderr)
@@ -65,14 +62,3 @@ def setup_git_submodules() -> None:
 
     _run(["git", "submodule", "update", "--init", "--recursive"], cwd=REPO_ROOT)
     print("Git submodules updated successfully!")
-
-    _update_submodule(
-        HERMES_AGENT_DIR,
-        "Hermes Agent",
-        "https://github.com/NousResearch/hermes-agent.git",
-    )
-    _update_submodule(
-        LANGFUSE_DIR,
-        "Langfuse",
-        "https://github.com/langfuse/langfuse.git",
-    )

@@ -3,24 +3,47 @@
 Perfection? 💯 Chaos? 🤡
 Harry's AI AgentOps Environment.
 
+## System Architecture
+
+### Components
+
+#### [Pi](https://pi.dev/)
+#### [Hermes Agent](https://hermes-agent.nousresearch.com/)
+#### [LiteLLM](https://docs.litellm.ai/)
+#### [CrofAI](https://crof.ai/)
+#### [Hindsight](https://hindsight.vectorize.io/)
+#### [Arize Phoenix](https://arize.com/docs/phoenix)
+
+### Diagram
+
+```mermaid
+```
+
 ## My Environment
 
 - macOS 26.4
-- bash
 - brew
+- bash
+- tmux
 - uv 0.11
 - pnpm 11
 - Python 3.14
 - Node.js 24
 - PostgreSQL 18
 
-## Dependencies
+## Install Dependencies
 
 ```sh
 uv sync --all-packages
 
 # tree-sitter requires C++20
 CXXFLAGS=-std=c++20 pnpm i
+```
+
+## Run Servers
+
+```sh
+tmux new -s nailed-it uv run dev-cli serve
 ```
 
 ## 설정
@@ -40,22 +63,6 @@ uv run dev-cli setup hs-api
 
 # Hindsight Web
 uv run dev-cli setup hs-web
-```
-
-## 실행
-
-```sh
-# Langfuse
-cd external/langfuse && docker compose up -d
-
-# LiteLLM for Hindsight
-sh assets/ll-hs/run.sh
-
-# Hindsight API
-sh assets/hs-api/run.sh
-
-# Hindsight Web
-sh assets/hs-web/run.sh
 ```
 
 ## 구조
@@ -151,11 +158,6 @@ uv run dev-cli models-dev providers
 uv run dev-cli models-dev models openai
 uv run dev-cli models-dev model openai gpt-4o
 ```
-
-## 환경변수
-
-- `.env.hs-api` — Hindsight API
-- `.env.ll-hs` — LiteLLM for Hindsight (Langfuse, CrofAI)
 
 ## 라이선스
 

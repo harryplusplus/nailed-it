@@ -68,5 +68,5 @@ def setup_global_skills() -> None:
     clean_broken_symlinks()
 
     # Add link_skill("<name>") calls below
-    link_skill("memory")
+    # link_skill("memory")
     link_skill("tavily")

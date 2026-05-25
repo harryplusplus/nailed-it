@@ -1,4 +1,3 @@
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -27,18 +26,12 @@ def setup_pi_config() -> None:
     print(f"  pi {result.stdout.strip()}", file=sys.stderr)
 
     print("Installing Pi package...")
-    package_dir = REPO_ROOT / "packages" / "pi"
+    package_dir = REPO_ROOT / "node-packages" / "pi"
     result = subprocess.run(
         ["pi", "install", str(package_dir)],
     )
     if result.returncode != 0:
         msg = "Failed to install Pi package"
         raise RuntimeError(msg)
-
-    print("Checking OLLAMA_API_KEY environment variable...")
-    if not os.environ.get("OLLAMA_API_KEY"):
-        msg = "OLLAMA_API_KEY is not set"
-        raise RuntimeError(msg)
-    print("  OLLAMA_API_KEY is set", file=sys.stderr)
 
     print("Pi setup complete!")
