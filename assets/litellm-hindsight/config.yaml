@@ -6,7 +6,7 @@ model_list:
       api_key: os.environ/CROF_API_KEY
 
 litellm_settings:
-  callbacks: ["arize_phoenix"]
+  callbacks: ["arize_phoenix", "force_temp_callback.proxy_handler_instance"]
 
 environment_variables:
   PHOENIX_COLLECTOR_HTTP_ENDPOINT: http://localhost:6006/v1/traces
