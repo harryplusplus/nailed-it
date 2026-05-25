@@ -97,6 +97,12 @@ _SVC_DEFS: list[_SvcDef] = [
         startup_cmd="curl -sf http://localhost:8888/health > /dev/null 2>&1",
         liveness_cmd="curl -sf http://localhost:8888/health > /dev/null 2>&1",
     ),
+    _SvcDef(
+        name="hindsight-web",
+        run_cmd="npx -y @vectorize-io/hindsight-control-plane@0.6.2",
+        startup_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
+        liveness_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
+    ),
 ]
 
 _LOGS_DIR = Path.home() / ".nailed-it" / "logs"
