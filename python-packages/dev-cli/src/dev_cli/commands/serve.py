@@ -63,7 +63,7 @@ _SVC_DEFS: list[_SvcDef] = [
         liveness_cmd="curl -sf http://localhost:6006 > /dev/null 2>&1",
     ),
     _SvcDef(
-        name="litellm-hindsight",
+        name="litellm",
         run_cmd="uvx"
         " --from='litellm[proxy]==1.86.0'"
         " --with=opentelemetry-api==1.42.1"
@@ -71,11 +71,20 @@ _SVC_DEFS: list[_SvcDef] = [
         " --with=opentelemetry-exporter-otlp==1.42.1"
         " --python=3.13"
         " litellm"
-        f" --config={REPO_ROOT / 'assets' / 'litellm-hindsight' / 'config.yaml'}"
+        f" --config={REPO_ROOT / 'assets' / 'litellm' / 'config.yaml'}"
         " --port=8001",
-        run_cwd=Path.home() / ".nailed-it" / "litellm-hindsight",
+        run_cwd=Path.home() / ".nailed-it" / "litellm",
         startup_cmd="curl -sf http://localhost:8001 > /dev/null 2>&1",
         liveness_cmd="curl -sf http://localhost:8001 > /dev/null 2>&1",
+    ),
+    _SvcDef(
+        name="mitmweb",
+        run_cmd="uvx --from=mitmproxy==12.2.3 mitmweb"
+        " -m reverse:http://localhost:8001"
+        " --no-web-open-browser"
+        f' -s "{REPO_ROOT / "python-packages" / "mitm-hooks" / "src" / "mitm_hooks" / "main.py"}"',  # noqa: E501
+        startup_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
+        liveness_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
     ),
     _SvcDef(
         name="hindsight-api",
@@ -102,21 +111,6 @@ _SVC_DEFS: list[_SvcDef] = [
         run_cmd="npx -y @vectorize-io/hindsight-control-plane@0.6.2",
         startup_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
         liveness_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
-    ),
-    _SvcDef(
-        name="litellm-hermes",
-        run_cmd="uvx"
-        " --from='litellm[proxy]==1.86.0'"
-        " --with=opentelemetry-api==1.42.1"
-        " --with=opentelemetry-sdk==1.42.1"
-        " --with=opentelemetry-exporter-otlp==1.42.1"
-        " --python=3.13"
-        " litellm"
-        f" --config={REPO_ROOT / 'assets' / 'litellm-hermes' / 'config.yaml'}"
-        " --port=8002",
-        run_cwd=Path.home() / ".nailed-it" / "litellm-hermes",
-        startup_cmd="curl -sf http://localhost:8002 > /dev/null 2>&1",
-        liveness_cmd="curl -sf http://localhost:8002 > /dev/null 2>&1",
     ),
 ]
 

@@ -1,0 +1,9 @@
+[project]
+name = "mitm-hooks"
+version = "0.0.0"
+
+[tool.uv]
+package = true
+
+[dependency-groups]
+dev = ["mitmproxy==12.2.3"]

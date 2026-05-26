@@ -6,8 +6,8 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Crof",
       "options": {
-        "baseURL": "https://crof.ai/v1",
-        "apiKey": "{env:CROF_API_KEY}",
+        "baseURL": "http://localhost:8080/v1",
+        "apiKey": "opencode",
       },
       "models": {
         "glm-5.1-precision": {
