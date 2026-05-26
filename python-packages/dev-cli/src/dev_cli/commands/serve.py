@@ -47,7 +47,7 @@ class _SvcDef:
     startup_timeout_seconds: float = 10.0
     startup_failure_threshold: int = 90
 
-    # Liveness probe — periodic health checks (None = skip)
+    # Liveness probe — periodic health checks (None = use startup_cmd)
     liveness_cmd: str | None = None
     liveness_cwd: Path = REPO_ROOT
     liveness_period_seconds: float = 10.0
@@ -230,8 +230,7 @@ def _monitor_servers(
     while True:
         now = time.monotonic()
         for svc_def in _SVC_DEFS:
-            if svc_def.liveness_cmd is None:
-                continue
+            liveness_cmd = svc_def.liveness_cmd or svc_def.startup_cmd
 
             period = svc_def.liveness_period_seconds
             last = last_checked.get(svc_def.name, 0.0)
@@ -241,7 +240,7 @@ def _monitor_servers(
             last_checked[svc_def.name] = now
 
             alive = _check_liveness(
-                svc_def.liveness_cmd,
+                liveness_cmd,
                 svc_def.liveness_cwd,
                 svc_def.liveness_timeout_seconds,
             )

@@ -44,3 +44,6 @@ project-includes = [
     "python-packages/*/tests/**/*.py",
 ]
 search-path = ["python-packages/dev-cli/src", "python-packages/mitm-hooks/src"]
+
+[tool.pyrefly.errors]
+not-required-key-access = true
