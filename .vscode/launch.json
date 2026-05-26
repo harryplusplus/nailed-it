@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "mitm",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/.venv/bin/mitmweb",
+      "args": [
+        "-m",
+        "reverse:http://localhost:4000",
+        "--no-web-open-browser",
+        "-s",
+        "${workspaceFolder}/python-packages/mitm-hooks/src/mitm_hooks/main.py"
+      ],
+      "justMyCode": true,
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}

@@ -58,39 +58,24 @@ class _SvcDef:
 _SVC_DEFS: list[_SvcDef] = [
     _SvcDef(
         name="phoenix",
-        run_cmd="uvx --from=arize-phoenix==16.0.0 phoenix serve",
+        run_cmd="bash scripts/phoenix.sh",
         startup_cmd="curl -sf http://localhost:6006 > /dev/null 2>&1",
-        liveness_cmd="curl -sf http://localhost:6006 > /dev/null 2>&1",
     ),
     _SvcDef(
         name="litellm",
-        run_cmd="uvx"
-        " --from='litellm[proxy]==1.86.0'"
-        " --with=opentelemetry-api==1.42.1"
-        " --with=opentelemetry-sdk==1.42.1"
-        " --with=opentelemetry-exporter-otlp==1.42.1"
-        " --python=3.13"
-        " litellm"
-        f" --config={REPO_ROOT / 'assets' / 'litellm' / 'config.yaml'}"
-        " --port=8001",
-        run_cwd=Path.home() / ".nailed-it" / "litellm",
-        startup_cmd="curl -sf http://localhost:8001 > /dev/null 2>&1",
-        liveness_cmd="curl -sf http://localhost:8001 > /dev/null 2>&1",
+        run_cmd="bash scripts/litellm.sh",
+        startup_cmd="curl -sf http://localhost:4000 > /dev/null 2>&1",
     ),
     _SvcDef(
-        name="mitmweb",
-        run_cmd="uvx --from=mitmproxy==12.2.3 mitmweb"
-        " -m reverse:http://localhost:8001"
-        " --no-web-open-browser"
-        f' -s "{REPO_ROOT / "python-packages" / "mitm-hooks" / "src" / "mitm_hooks" / "main.py"}"',  # noqa: E501
+        name="mitm",
+        run_cmd="bash scripts/mitm.sh",
         startup_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
-        liveness_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
     ),
     _SvcDef(
         name="hindsight-api",
         run_cmd="HINDSIGHT_API_DATABASE_URL=postgresql://harry@localhost:5432/hindsight"
-        " HINDSIGHT_API_LLM_BASE_URL=http://localhost:8001"
-        " HINDSIGHT_API_LLM_API_KEY=dummy"
+        " HINDSIGHT_API_LLM_BASE_URL=http://localhost:8080/v1"
+        " HINDSIGHT_API_LLM_API_KEY=hindsight"
         " HINDSIGHT_API_LLM_MODEL=mimo-v2.5-pro-precision"
         " HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-m3"
         " HINDSIGHT_API_TEXT_SEARCH_EXTENSION=vchord"
@@ -104,13 +89,11 @@ _SVC_DEFS: list[_SvcDef] = [
         " --with=sentence_transformers==5.5.1"
         " hindsight-api",
         startup_cmd="curl -sf http://localhost:8888/health > /dev/null 2>&1",
-        liveness_cmd="curl -sf http://localhost:8888/health > /dev/null 2>&1",
     ),
     _SvcDef(
-        name="hindsight-web",
+        name="hindsight-control-plane",
         run_cmd="npx -y @vectorize-io/hindsight-control-plane@0.6.2",
         startup_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
-        liveness_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
     ),
 ]
 

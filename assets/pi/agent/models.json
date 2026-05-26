@@ -30,6 +30,24 @@
           "reasoning": true
         }
       ]
+    },
+    "mitm": {
+      "baseUrl": "http://localhost:8080/v1",
+      "apiKey": "pi",
+      "api": "openai-completions",
+      "compat": {
+        "maxTokensField": "max_tokens",
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": true
+      },
+      "models": [
+        {
+          "id": "mimo-v2.5-pro-precision",
+          "contextWindow": 1000000,
+          "maxTokens": 131072,
+          "reasoning": true
+        }
+      ]
     }
   }
 }

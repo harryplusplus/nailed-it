@@ -6,7 +6,10 @@ if TYPE_CHECKING:
 
 class Hooks:
     def request(self, flow: HTTPFlow):
-        pass
+        if flow.request.method.lower() == "post" and flow.request.path.endswith(
+            "/chat/completions"
+        ):
+            pass
 
 
 addons = [Hooks()]
