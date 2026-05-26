@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -5,11 +6,16 @@ if TYPE_CHECKING:
 
 
 class Hooks:
-    def request(self, flow: HTTPFlow):
+    def request(self, flow: HTTPFlow) -> None:
         if flow.request.method.lower() == "post" and flow.request.path.endswith(
             "/chat/completions"
         ):
-            pass
+            try:
+                body = json.loads(flow.request.content)
+                body["temperature"] = 0.0
+                flow.request.content = json.dumps(body).encode()
+            except json.JSONDecodeError, KeyError:
+                pass
 
 
 addons = [Hooks()]
