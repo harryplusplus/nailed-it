@@ -13,25 +13,6 @@ from typing import IO
 
 from dev_cli.common import REPO_ROOT
 
-HINDSIGHT_API_RETAIN_MISSION = (
-    "텍스트에서 중요한 사실만 선택적으로 추출한다."
-    " 장기 기억에 가치 있는 사실만 남기고, 인사·잡담·필러·프로세스 잡담·반복 정보는 제외한다."  # noqa: E501
-    " 개인정보·선호·중대한 이벤트·계획·전문성·중요한 맥락·감각·정서적 세부 사항·관찰을 포함한다."  # noqa: E501
-    " 모든 출력은 입력 텍스트와 동일한 언어(한국어)로 한다."
-)
-
-HINDSIGHT_API_OBSERVATIONS_MISSION = (
-    "모든 세부 사항을 추적한다: 이름, 숫자, 날짜, 장소, 관계. 추상화보다 구체적인 사실을 선호하며, 절대 일반화하지 않는다."  # noqa: E501
-    " 모든 출력은 원본 텍스트의 언어(한국어)를 그대로 보존한다."
-)
-
-HINDSIGHT_API_REFLECT_MISSION = (
-    "검색된 기억들을 추론하여 질문에 답하는 reflection agent이다."
-    " 제공된 기억과 관찰을 사용해 질문에 철저히 답하고, 기억의 구체적인 세부 사항을 인용하며, 여러 출처의 정보를 관련 있을 때 종합한다."  # noqa: E501
-    " 마크다운 서식을 사용한다."
-    " 모든 출력은 사용자의 질문과 동일한 언어(한국어)로 한다."
-)
-
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class _SvcDef:
@@ -57,42 +38,28 @@ class _SvcDef:
 
 _SVC_DEFS: list[_SvcDef] = [
     _SvcDef(
+        name="mitm-crof",
+        run_cmd="bash scripts/mitm-crof.sh",
+        startup_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
+    ),
+    _SvcDef(
         name="phoenix",
         run_cmd="bash scripts/phoenix.sh",
         startup_cmd="curl -sf http://localhost:6006 > /dev/null 2>&1",
     ),
     _SvcDef(
-        name="litellm",
-        run_cmd="bash scripts/litellm.sh",
+        name="litellm-hindsight",
+        run_cmd="bash scripts/litellm-hindsight.sh",
         startup_cmd="curl -sf http://localhost:4000 > /dev/null 2>&1",
     ),
     _SvcDef(
-        name="mitm",
-        run_cmd="bash scripts/mitm.sh",
-        startup_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
-    ),
-    _SvcDef(
         name="hindsight-api",
-        run_cmd="HINDSIGHT_API_DATABASE_URL=postgresql://harry@localhost:5432/hindsight"
-        " HINDSIGHT_API_LLM_BASE_URL=http://localhost:8080/v1"
-        " HINDSIGHT_API_LLM_API_KEY=hindsight"
-        " HINDSIGHT_API_LLM_MODEL=mimo-v2.5-pro-precision"
-        " HINDSIGHT_API_EMBEDDINGS_LOCAL_MODEL=BAAI/bge-m3"
-        " HINDSIGHT_API_TEXT_SEARCH_EXTENSION=vchord"
-        " HINDSIGHT_API_RERANKER_LOCAL_MODEL=bongsoo/albert-small-kor-cross-encoder-v1"
-        " HINDSIGHT_API_RECALL_MAX_QUERY_TOKENS=1500"
-        f' HINDSIGHT_API_RETAIN_MISSION="{HINDSIGHT_API_RETAIN_MISSION}"'
-        f' HINDSIGHT_API_OBSERVATIONS_MISSION="{HINDSIGHT_API_OBSERVATIONS_MISSION}"'
-        f' HINDSIGHT_API_REFLECT_MISSION="{HINDSIGHT_API_REFLECT_MISSION}"'
-        " uvx"
-        " --from=hindsight-api-slim==0.6.2"
-        " --with=sentence_transformers==5.5.1"
-        " hindsight-api",
+        run_cmd="bash scripts/hindsight-api.sh",
         startup_cmd="curl -sf http://localhost:8888/health > /dev/null 2>&1",
     ),
     _SvcDef(
         name="hindsight-control-plane",
-        run_cmd="npx -y @vectorize-io/hindsight-control-plane@0.6.2",
+        run_cmd="bash scripts/hindsight-control-plane.sh",
         startup_cmd="curl -sf http://localhost:9999 > /dev/null 2>&1",
     ),
 ]

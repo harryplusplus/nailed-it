@@ -9,6 +9,4 @@ dev-cli = "dev_cli.cli:main"
 package = true
 
 [dependency-groups]
-dev = [
-    "typer>=0.24.1",
-]
+dev = ["typer==0.26.2"]

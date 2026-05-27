@@ -2,11 +2,13 @@ model_list:
   - model_name: mimo-v2.5-pro-precision
     litellm_params:
       model: openai/mimo-v2.5-pro-precision
-      api_base: https://crof.ai/v1
+      api_base: http://localhost:8080/v1
       api_key: os.environ/CROF_API_KEY
+      temperature: 0.0
 
 litellm_settings:
   callbacks: ["arize_phoenix"]
 
 environment_variables:
   PHOENIX_COLLECTOR_HTTP_ENDPOINT: http://localhost:6006/v1/traces
+  PHOENIX_PROJECT_NAME: hindsight
