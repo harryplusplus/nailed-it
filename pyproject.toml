@@ -38,7 +38,7 @@ project-includes = [
     "python-packages/*/src/**/*.py",
     "python-packages/*/tests/**/*.py",
 ]
-search-path = ["python-packages/dev-cli/src", "python-packages/mitm/src"]
+search-path = ["python-packages/dev-cli/src", "python-packages/mitm-crof/src"]
 
 [tool.pyrefly.errors]
 not-required-key-access = true

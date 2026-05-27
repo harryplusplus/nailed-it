@@ -1,0 +1,9 @@
+[project]
+name = "mitm-crof"
+version = "0.0.0"
+
+[dependency-groups]
+dev = ["mitmproxy==12.2.3"]
+
+[tool.uv]
+package = true
