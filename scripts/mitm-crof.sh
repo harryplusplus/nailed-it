@@ -9,4 +9,5 @@ exec uvx \
     mitmweb \
     --mode=reverse:https://crof.ai \
     --no-web-open-browser \
+    --set web_password=harry \
     -s python-packages/mitm-crof/src/mitm_crof/main.py

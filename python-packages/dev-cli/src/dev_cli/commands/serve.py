@@ -1,6 +1,7 @@
 """Serve subprocesses with rotating-file logging per service."""
 
 import logging
+import os
 import signal
 import subprocess
 import sys
@@ -242,6 +243,7 @@ def run_serve() -> None:
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                env={**os.environ, "PYTHONUNBUFFERED": "1"},
             )
             processes.append(proc)
 
