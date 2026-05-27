@@ -18,9 +18,9 @@
         },
         {
           "id": "kimi-k2.6-precision",
-          "contextWindow": 180224,
-          "maxTokens": 16384,
-          "input": ["image", "text"],
+          "contextWindow": 262144,
+          "maxTokens": 262144,
+          "input": ["text", "image"],
           "reasoning": true
         },
         {
@@ -41,6 +41,19 @@
         "supportsReasoningEffort": true
       },
       "models": [
+        {
+          "id": "glm-5.1-precision",
+          "contextWindow": 202752,
+          "maxTokens": 202752,
+          "reasoning": true
+        },
+        {
+          "id": "kimi-k2.6-precision",
+          "contextWindow": 262144,
+          "maxTokens": 262144,
+          "input": ["text", "image"],
+          "reasoning": true
+        },
         {
           "id": "mimo-v2.5-pro-precision",
           "contextWindow": 1000000,
