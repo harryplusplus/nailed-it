@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 _HTTP_STATUS_ERROR_THRESHOLD = 400
 
-_CROF_API_KEY = os.environ.get("CROF_API_KEY", "")
+_CROF_API_KEY = os.environ["CROF_API_KEY"]
 _PHOENIX_OTLP_ENDPOINT = "http://localhost:6006/v1/traces"
 
 _resource = Resource.create({ResourceAttributes.PROJECT_NAME: "mitm"})
