@@ -7,11 +7,10 @@
       "request": "launch",
       "program": "${workspaceFolder}/.venv/bin/mitmweb",
       "args": [
-        "-m",
-        "reverse:http://localhost:4000",
+        "--mode=reverse:https://crof.ai",
         "--no-web-open-browser",
         "-s",
-        "${workspaceFolder}/python-packages/mitm-hooks/src/mitm_hooks/main.py"
+        "${workspaceFolder}/python-packages/mitm/src/mitm/main.py"
       ],
       "justMyCode": true,
       "cwd": "${workspaceFolder}",

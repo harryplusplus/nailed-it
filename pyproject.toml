@@ -6,12 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 
 [dependency-groups]
-dev = [
-    "litellm[proxy]==1.86.0",
-    "mitmproxy==12.2.3",
-    "pyrefly>=1.0.0",
-    "ruff>=0.15.12",
-]
+dev = ["pyrefly==1.0.0", "ruff==0.15.14"]
 
 [tool.uv.workspace]
 members = ["python-packages/*"]
@@ -43,7 +38,7 @@ project-includes = [
     "python-packages/*/src/**/*.py",
     "python-packages/*/tests/**/*.py",
 ]
-search-path = ["python-packages/dev-cli/src", "python-packages/mitm-hooks/src"]
+search-path = ["python-packages/dev-cli/src", "python-packages/mitm/src"]
 
 [tool.pyrefly.errors]
 not-required-key-access = true
