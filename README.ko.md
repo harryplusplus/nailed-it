@@ -1,11 +1,11 @@
 # Nailed It!
 
-**English** | [한국어](./README.ko.md)
+[English](./README.md) | **한국어**
 
-Perfection? 💯 Chaos? 🤡  
-Harry's AI Agent Environment.
+완벽? 💯 카오스? 🤡  
+Harry의 AI 에이전트 환경.
 
-## System Architecture
+## 시스템 아키텍처
 
 ```mermaid
 flowchart LR
@@ -20,6 +20,8 @@ flowchart LR
     litellm --> crof
     litellm --> phoenix
 ```
+
+AI 에이전트에게 AGENTS.md, [Agent Skills](https://agentskills.io/)
 
 ### [Pi](https://pi.dev/)
 

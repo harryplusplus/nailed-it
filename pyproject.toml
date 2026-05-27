@@ -1,7 +1,6 @@
 [project]
 name = "nailed-it"
 version = "0.0.0"
-description = "Perfection? 💯 Chaos? 🤡; Harry's AI AgentOps Environment."
 readme = "README.md"
 requires-python = ">=3.14"
 
