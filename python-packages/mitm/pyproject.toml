@@ -1,5 +1,5 @@
 [project]
-name = "mitm-hooks"
+name = "mitm"
 version = "0.0.0"
 
 [tool.uv]
