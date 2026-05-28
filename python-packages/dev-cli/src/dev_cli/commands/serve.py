@@ -32,7 +32,7 @@ class _SvcDef:
     # Liveness probe — periodic health checks (None = use startup_cmd)
     liveness_cmd: str | None = None
     liveness_cwd: Path = REPO_ROOT
-    liveness_period_seconds: float = 10.0
+    liveness_period_seconds: float = 300.0
     liveness_timeout_seconds: float = 5.0
     liveness_failure_threshold: int = 3
 
@@ -41,7 +41,7 @@ _SVC_DEFS: list[_SvcDef] = [
     _SvcDef(
         name="mitm-crof",
         run_cmd="bash scripts/mitm-crof.sh",
-        startup_cmd="curl -sf http://localhost:8080/v1/models > /dev/null 2>&1",
+        startup_cmd="nc -z localhost 8080 > /dev/null 2>&1",
     ),
     _SvcDef(
         name="phoenix",
