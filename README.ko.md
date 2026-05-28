@@ -61,23 +61,24 @@ AGENTS.md, Agent Skills와 같은 적은 분량의 문서로 해결하기 어려
 
 ### 문제 정의
 
-개인적으로 평상시에 질의/탐구/경험해서 획득한 지식들을 AI와 공유하기가 쉽지 않습니다.
+평상시에 질의/탐구/경험해서 획득한 지식들을 AI와 공유하기가 쉽지 않습니다.
 파편화된 지식들을 문서화하는 것은 시간적 인적 비용면에서 수지타산이 맞지 않다고 생각했습니다.
-그래서 개인적인 질의/탐구/경험을 모두 에이전트 하네스를 통해서 하면 자연스럽게 지식을 누적하고 AI와 공유할 수 있을 것이라는 가정 하에 이 프로젝트를 시작했습니다.
+그래서 개인적인 경험을 모두 에이전트 하네스를 통해서 하면 자연스럽게 지식을 누적하고 AI와 공유할 수 있을 것이라는 가정 하에 이 프로젝트를 시작했습니다.
 
 ## 어떻게 기능을 구현했나요?
 
-크게 3가지 구성요소를 사용했습니다.
+크게 3가지 핵심 구성요소를 사용했습니다.
 [Hindsight](https://hindsight.vectorize.io/), [Pi](https://pi.dev/) 그리고 [Hermes Agent](https://hermes-agent.nousresearch.com/)입니다.
 
-### Hindsight
+### [Hindsight](https://hindsight.vectorize.io/)
 
-먼저 Hindsight는 장기 기억 시스템입니다.
+Hindsight는 장기 기억 시스템입니다.
+기억 질의시 4가지의 방법(Semantic, Keyword (BM25), Graph, Temporal)을 병렬로 실행하고 그 결과를 RRF Fusion, Cross Encoding 처리한 후 결과를 반환합니다.
+Semantic 구성은 한국어 지원이 필요했기 때문에 [Hindsight 공식 다국어 임베딩 모델 추천](https://hindsight.vectorize.io/developer/multilingual#2-embedding-model-recommended)을 따라서 [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)를 사용했습니다.
+Keyword (BM25) 구성도 마찬가지로 한국어 지원이 필요했기 때문에 [Hindsight 공식 다국어 텍스트 검색 백엔드 추천](https://hindsight.vectorize.io/developer/multilingual#4-bm25--full-text-search-backend)을 따라서 [vchord](https://github.com/supervc-stack/VectorChord-bm25)를 사용했습니다. 내부적으로 [llmlingua2](https://llmlingua.com/) 토크나이저를 사용합니다.
 
 
 ### [Pi](https://pi.dev/)
-
-### [Hindsight](https://hindsight.vectorize.io/)
 
 ### [LiteLLM](https://docs.litellm.ai/)
 
