@@ -73,10 +73,22 @@ AGENTS.md, Agent Skills와 같은 적은 분량의 문서로 해결하기 어려
 ### [Hindsight](https://hindsight.vectorize.io/)
 
 Hindsight는 장기 기억 시스템입니다.
-기억 질의시 4가지의 방법(Semantic, Keyword (BM25), Graph, Temporal)을 병렬로 실행하고 그 결과를 RRF, Cross Encoding 처리한 후 결과를 반환합니다.
+크게 3가지의 기능(Recall, Retain, Consolidation)을 구현합니다.
+
+Recall은 4가지의 방법(Semantic, Keyword (BM25), Graph, Temporal)을 병렬로 실행하고 그 결과를 RRF, Cross Encoding 처리한 후 결과를 반환합니다.
 Semantic 구성은 한국어 지원이 필요했기 때문에 Hindsight 공식 다국어 임베딩 추천 모델인 [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)를 사용했습니다.
 Keyword (BM25) 구성도 마찬가지로 한국어 지원이 필요했기 때문에 추천 백엔드인 [vchord](https://github.com/supervc-stack/VectorChord-bm25)를 사용했습니다. 내부적으로 [llmlingua2](https://llmlingua.com/) 토크나이저를 사용합니다.
-Cross Encoding 구성은 개인 환경인 M1 16GB 맥북에서 5초 이내 처리를 위해서 [bongsoo/albert-small-kor-cross-encoder-v1](https://huggingface.co/bongsoo/albert-small-kor-cross-encoder-v1)를 사용했습니다.
+Cross Encoding 구성은 개인 환경인 M1 16GB 맥북에서 5초 이내 처리를 위해서 경량 모델인 [bongsoo/albert-small-kor-cross-encoder-v1](https://huggingface.co/bongsoo/albert-small-kor-cross-encoder-v1)를 사용했습니다.
+
+Retain은 LLM을 사용해서 대화 내용으로부터 사실 관계를 추출하고 데이터베이스에 저장합니다.
+저장된 사실 관계는 Recall의 Graph 탐색에서 사용됩니다.
+LLM API는 [CrofAI](https://crof.ai/)의 mimo-v2.5-pro-precision 모델(Q8 양자화)을 사용했습니다.
+원본 [MiMo-V2.5-Pro](https://huggingface.co/XiaomiMiMo/MiMo-V2.5-Pro)은 FP8 양자화로 배포하는 것을 권장합니다.
+하지만 CrofAI는 양자화된 모델을 전문적으로 제공하는 업체로써 월 $50에 해당 모델을 일당 2000 요청을 제공했습니다.
+최근 CrofAI는 구독 시스템 적자로 인해서 pay-as-you-go만 사용 가능하도록 변경됐습니다.
+
+Consolidation은 Retain 후 저장된 사실에 대해서 Recall을 수행한 후 해당 결과를 다시 LLM을 사용해서 사실 관계를 갱신합니다.
+Retain과 마찬가지로 동일한 LLM API와 모델을 사용했습니다.
 
 ### [Pi](https://pi.dev/)
 

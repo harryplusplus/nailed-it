@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "hyper-proxy",
+  "defaultProvider": "hyper",
   "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
   "theme": "light",
