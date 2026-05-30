@@ -9,16 +9,19 @@ Harry의 AI 에이전트 환경.
 
 ```mermaid
 flowchart LR
-    pi["Pi"]
-    hindsight["Hindsight"]
-    litellm["LiteLLM"]
-    crof["CrofAI<br/>(Provider)"]
-    phoenix["Arize Phoenix<br/>(Tracing)"]
 
-    pi --> hindsight
-    hindsight --> litellm
-    litellm --> crof
-    litellm --> phoenix
+pi["Pi"]
+hermes["Hermes"]
+hindsight["Hindsight"]
+litellm["LiteLLM"]
+crof["CrofAI<br/>(Provider)"]
+phoenix["Arize Phoenix<br/>(Tracing)"]
+
+pi --> hindsight
+hermes --> hindsight
+hindsight --> litellm
+litellm --> crof
+litellm --> phoenix
 ```
 
 ## 왜 이 프로젝트를 시작했나요?
@@ -67,13 +70,15 @@ AGENTS.md, Agent Skills와 같은 적은 분량의 문서로 해결하기 어려
 
 ## 어떻게 기능을 구현했나요?
 
-크게 3가지 핵심 구성요소를 사용했습니다.
-[Hindsight](https://hindsight.vectorize.io/), [Pi](https://pi.dev/) 그리고 [Hermes Agent](https://hermes-agent.nousresearch.com/)입니다.
+크게 5가지 핵심 구성요소를 사용했습니다.
+[Hindsight](https://hindsight.vectorize.io/), [Pi](https://pi.dev/), [Hermes Agent](https://hermes-agent.nousresearch.com/), [LiteLLM](https://docs.litellm.ai/) 그리고 [Arize Phoenix](https://arize.com/docs/phoenix)입니다.
 
 ### [Hindsight](https://hindsight.vectorize.io/)
 
+#### Hindsight는 무엇인가요?
+
 Hindsight는 장기 기억 시스템입니다.
-크게 3가지의 기능(Recall, Retain, Consolidation)을 구현합니다.
+크게 3가지의 기능(Recall, Retain, Consolidation)이 있습니다.
 
 Recall은 4가지의 방법(Semantic, Keyword (BM25), Graph, Temporal)을 병렬로 실행하고 그 결과를 RRF, Cross Encoding 처리한 후 결과를 반환합니다.
 Semantic 구성은 한국어 지원이 필요했기 때문에 Hindsight 공식 다국어 임베딩 추천 모델인 [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)를 사용했습니다.
@@ -90,14 +95,62 @@ LLM API는 [CrofAI](https://crof.ai/)의 mimo-v2.5-pro-precision 모델(Q8 양�
 Consolidation은 Retain 후 저장된 사실에 대해서 Recall을 수행한 후 해당 결과를 다시 LLM을 사용해서 사실 관계를 갱신합니다.
 Retain과 마찬가지로 동일한 LLM API와 모델을 사용했습니다.
 
-### [Pi](https://pi.dev/)
+#### 왜 Hindsight를 사용했나요?
+
+Hindsight를 사용한 이유는 의미 검색 + 지식 그래프 + 사실 갱신 기능이 있기 때문입니다.
+저의 기호, 기호간 관계 및 기호 변화를 저장하고 검색해서 AI 에이전트가 저와 정렬되길 기대했습니다.
+특히 사실 갱신 기능을 특히 유용하다고 생각했습니다.
+왜냐하면 저의 관심사가 한 곳에 머무르지 않고 지속적으로 변할 수 있기 때문입니다.
+저의 프로그래밍 언어, 도구, 기법, 설계 등등에 대한 기호는 때에 따라서 계속 변합니다.
+AI 에이전트 세션에서 해당 주제를 언급할 때마다 설명하는 것은 꽤 피곤하고 지루합니다.
+
+#### 결과적으로 Hindsight는 효과가 있었나요?
+
+체감적으로 Hindsight를 적용한 후 AI 에이전트의 행동 편차가 줄었다고 느꼈습니다.
+제 구성으로 변인을 통제한 A/B 테스팅을 하지는 않았습니다.
+왜냐하면 언급한 그리고 언급하지 않은 여러 구성 옵션이 많았고 적용 및 미적용 비교를 입증하기 이전에 이 시스템이 유효함을 스스로에게 먼저 납득시켜야 했기 때문입니다.
+장기기억 및 기호 특성상 제 스스로에게 납득할만한 충분한 기간이 필요했었습니다.
+
+#### 왜 Hindsight를 정량적으로 측정하지 않았나요?
+
+굳이 Hindsight를 정량적으로 측정하지 않은 이유는 [Agent Memory Benchmark](https://agentmemorybenchmark.ai/)에서 Hindsight의 벤치마크를 볼 수 있기 때문입니다.
+멀티 세션 장기기억에서 높은 점수를 받았음을 확인할 수 있습니다.
+
+#### 그래서 Hindsight에 대한 결론은 무엇인가요?
+
+소프트웨어 엔지니어로써 실무적인 관점에서 Hindsight와 같은 기억 시스템의 근본적인 문제는, 해결하려는 문제가 반복적이고 잘 규정할 수 있는 경우에는 잘 정리된 시스템 수준 프롬프트(AGENTS.md 또는 Agent Skills)가 훨씬 유효하다는 것을 깨달았기 때문입니다.
+문제를 잘 정의하면 그 문제를 해결하기 위한 프롬프트를 작성하고 관리할 수 있습니다.
+실무에서는 복잡한 관계의 사실과 그 사실의 변화를 지속적으로 관리하는 것보다는, 복잡성을 지우고 단순성의 반복으로 재구성해야 합니다.
+
+결과적으로 시스템 수준 프롬프트로 정리가 가능한 항목에 대해서는 시스템 수준 프롬프트를 지속적으로 개선하는 시스템이 더 효과적일 것 같습니다.
+
+예를 들어, 특정 Agent Skill을 사용해서 작업을 수행하고 사용자 또는 다른 에이전트와 상호작용 및 피드백하며 작업을 완료한 후 이 기록을 바탕으로 검토자가 스킬의 다음 버전을 제안하고 리뷰하는 형태가 있을 수 있을 것 같습니다.
+아래는 Agent Skills를 개선 관리하는 흐름도입니다.
+
+```mermaid
+flowchart LR
+
+skill["Agent Skill"]
+agents["Agent With Human or Other Agents"]
+history["History"]
+maintainer["Skill Maintainer"]
+
+skill --> agents
+agents --> history
+history --> maintainer
+maintainer --> skill
+```
 
 ### [LiteLLM](https://docs.litellm.ai/)
 
-### [CrofAI](https://crof.ai/)
+LiteLLM은 LLM 프록시 서버입니다.
+사용한 이유는 
 
 ### [Arize Phoenix](https://arize.com/docs/phoenix)
 
+### [Pi](https://pi.dev/)
+
+### [Hermes Agent](https://hermes-agent.nousresearch.com/)
 
 ## My Environment
 
