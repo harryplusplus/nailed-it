@@ -70,8 +70,8 @@ AGENTS.md, Agent Skills와 같은 적은 분량의 문서로 해결하기 어려
 
 ## 어떻게 기능을 구현했나요?
 
-크게 5가지 핵심 구성요소를 사용했습니다.
-[Hindsight](https://hindsight.vectorize.io/), [Pi](https://pi.dev/), [Hermes Agent](https://hermes-agent.nousresearch.com/), [LiteLLM](https://docs.litellm.ai/) 그리고 [Arize Phoenix](https://arize.com/docs/phoenix)입니다.
+크게 4가지 핵심 구성요소를 사용했습니다.
+[Hindsight](https://hindsight.vectorize.io/), [LiteLLM](https://docs.litellm.ai/), [Arize Phoenix](https://arize.com/docs/phoenix) 그리고 [Pi](https://pi.dev/)입니다.
 
 ### [Hindsight](https://hindsight.vectorize.io/)
 
@@ -143,14 +143,20 @@ maintainer --> skill
 
 ### [LiteLLM](https://docs.litellm.ai/) 및 [Arize Phoenix](https://arize.com/docs/phoenix)
 
+#### LiteLLM과 Arize Phoenix는 무엇인가요?
+
 LiteLLM은 LLM 프록시 서버입니다.
 그리고 Arize Phoenix는 LLM Tracing, Eval 도구입니다.
+
+#### LiteLLM을 사용한 이유는 무엇인가요?
 
 LiteLLM을 사용한 이유는 Hindsight가 직접적으로 Tracing 도구 연동을 지원하지 않았기 때문입니다. Hindsight는 내부적으로 LLM API를 호출합니다.
 그리고 내부의 LLM API 호출은 Hindsight 기능의 품질에 크게 영향을 끼칩니다.
 거의 날 것의 대화 내용에서 사실 및 사실 관계를 LLM이 추출해줘야 하기 때문입니다.
 
 Hindsight에서 LiteLLM 프록시로 LLM API를 호출하면 Arize Phoenix로 Tracing하면서 LLM 제공자인 CrofAI API로 릴레이합니다.
+
+#### Arize Phoenix를 사용한 이유는 무엇인가요?
 
 Arize Phoenix를 사용한 이유는 Hindsight의 Tracing을 위해서입니다.
 그리고 Hindsight의 품질이 비정상이라고 판단될 경우에 Eval 기능도 수행할 수 있기 때문입니다.
@@ -159,7 +165,52 @@ Arize Phoenix를 사용한 이유는 Hindsight의 Tracing을 위해서입니다.
 
 ### [Pi](https://pi.dev/)
 
-### [Hermes Agent](https://hermes-agent.nousresearch.com/)
+#### Pi는 무엇인가요?
+
+Pi는 확장이 용이한 오픈소스 에이전트 하네스입니다.
+이전에는 OpenCode를 주로 사용했으나 Hindsight 연동시 OpenCode의 구조적인 제약사항으로 인해 다른 후보를 물색했습니다.
+Pi를 조사한 결과 제가 요구하는 수준의 Hindsight 연동을 구현할 수 있어서 채택했습니다.
+
+#### Hindsight를 연동하기 위해서 에이전트 하네스에 대한 요구사항은 무엇인가요?
+
+제가 에이전트 하네스에게 요구하는 기능은 다음과 같습니다.
+
+- 사용자(저)의 입력 후 자동으로 Recall을 수행할 수 있어야 합니다.
+- Recall의 질의로써 일정 토큰 한도 내에서 최근 N개의 사용자 메시지를 사용할 수 있어야 합니다.
+- Recall은 타임아웃이 가능해야합니다.
+- Recall 결과를 사용자(저)가 필요시 확인할 수 있어야 합니다.
+- Recall 결과는 대화 내역 중 현재 사용자 메시지의 앞에만 붙일 수 있어야 합니다.
+  - 대화 내 과거의 Recall 결과는 버립니다.
+  - LLM API의 읽기 캐시 친화적으로 상단부(세션 내 시스템 프롬프트부터 오래된 대화들)가 안정적이어야 합니다.
+- Hindsight의 기능 및 장애와 관계없이 에이전트 하네스는 동작해야 합니다.
+- 사용자에게 답변시마다 자동으로 비동기 Retain이 가능해야 합니다.
+- Retain할 날 것의 데이터를 어느 정도 필터링할 수 있어야 합니다.
+
+#### 최근 N개의 사용자 메시지를 Recall 질의로 구현한 이유
+
+- 사용자: XXX 해줘.
+- 에이전트: <답변>
+- 사용자: 그것말고 이렇게 해줘.
+
+이처럼 대명사를 사용하는 경우가 많았고, "XXX 해줘.", "그것말고 이렇게 해줘." 대신에 "그것말고 이렇게 해줘."만 Recall 질의할 경우에 정보가 상당히 누락된 상태기 때문에 결과 품질이 낮을 수 밖에 없었습니다.
+
+이를 해결하기 위해서 구성한 토큰 한도 내에서 최근 N개의 사용자 메시지를 Recall 질의로 사용하도록 구현했습니다.
+
+#### 현재 사용자 메시지 앞에 Recall 결과를 첨부하도록 구현한 이유
+
+일반적인 에이전트 하네스는 `시스템, 사용자[0], AI[0], 사용자[1], AI[1], ...` 이와 같은 대화 내역을 갖게 됩니다.
+Recall 결과를 AI가 볼 수 있도록 첨부해야하는데 가능한 위치는 다음과 같습니다.
+
+1. `시스템 + Recall_결과, 사용자[0], AI[0], 사용자[1]`
+
+1번은 시스템 프롬프트의 뒤에 붙이는 것입니다. 기억 측면에서 보면 시스템 프롬프트 영역에 있는 것이 합리적입니다. 하지만 매 사용자 턴마다 시스템 프롬프트가 변경되기 때문에 LLM API의 읽기 캐시를 활용할 수 없게 됩니다. 제가 사용한 모델 기준 **읽기 캐시는 읽기보다 5배 저렴**합니다.
+따라서 읽기 캐시 친화적으로 구현해야 합니다.
+
+2. `시스템, 사용자[0], AI[0], Recall_결과 + 사용자[1]`
+
+2번은 현재 사용자 대화의 앞에 붙이는 것입니다.
+이렇게 구현할 경우 최근 사용자 2턴을 제외한 이전 턴들은 안정적이기 때문에 읽기 캐시 친화적입니다.
+기억 측면에서 보면 대화 중간에 기억이 있는 것이 부자연스러울 수 있기 때문에 tag와 tag 내에 기억 정보임을 강조하는 내용을 넣어서 AI 에이전트가 기억 정보를 사용자 메시지와 구분해서 파악할 수 있도록 구현했습니다.
 
 ## My Environment
 
