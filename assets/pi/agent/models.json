@@ -2,7 +2,7 @@
   "providers": {
     "crof": {
       "baseUrl": "https://crof.ai/v1",
-      "apiKey": "CROF_API_KEY",
+      "apiKey": "$CROF_API_KEY",
       "api": "openai-completions",
       "compat": {
         "maxTokensField": "max_tokens",
@@ -59,6 +59,48 @@
           "contextWindow": 1000000,
           "maxTokens": 131072,
           "reasoning": true
+        }
+      ]
+    },
+    "hyper": {
+      "baseUrl": "https://hyper.charm.land/v1",
+      "apiKey": "$HYPER_API_KEY",
+      "api": "openai-completions",
+      "compat": {
+        "maxTokensField": "max_tokens",
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": true
+      },
+      "models": [
+        {
+          "id": "deepseek-v4-flash",
+          "contextWindow": 1048576,
+          "maxTokens": 104857,
+          "reasoning": true,
+          "compat": {
+            "requiresReasoningContentOnAssistantMessages": true
+          }
+        }
+      ]
+    },
+    "hyper-proxy": {
+      "baseUrl": "http://localhost:8080/v1",
+      "apiKey": "$HYPER_API_KEY",
+      "api": "openai-completions",
+      "compat": {
+        "maxTokensField": "max_tokens",
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": true
+      },
+      "models": [
+        {
+          "id": "deepseek-v4-flash",
+          "contextWindow": 1048576,
+          "maxTokens": 104857,
+          "reasoning": true,
+          "compat": {
+            "requiresReasoningContentOnAssistantMessages": true
+          }
         }
       ]
     }

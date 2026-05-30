@@ -1,6 +1,6 @@
 {
-  "defaultProvider": "crof",
-  "defaultModel": "mimo-v2.5-pro-precision",
+  "defaultProvider": "hyper-proxy",
+  "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
   "theme": "light",
   "packages": [
@@ -9,6 +9,6 @@
     "npm:@juicesharp/rpiv-todo",
     "../../repo/nailed-it/node-packages/pi"
   ],
-  "lastChangelogVersion": "0.76.0",
+  "lastChangelogVersion": "0.78.0",
   "hideThinkingBlock": true
 }
