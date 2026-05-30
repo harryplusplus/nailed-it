@@ -74,8 +74,8 @@ AGENTS.md, Agent Skills와 같은 적은 분량의 문서로 해결하기 어려
 
 Hindsight는 장기 기억 시스템입니다.
 기억 질의시 4가지의 방법(Semantic, Keyword (BM25), Graph, Temporal)을 병렬로 실행하고 그 결과를 RRF Fusion, Cross Encoding 처리한 후 결과를 반환합니다.
-Semantic 구성은 한국어 지원이 필요했기 때문에 [Hindsight 공식 다국어 임베딩 모델 추천](https://hindsight.vectorize.io/developer/multilingual#2-embedding-model-recommended)을 따라서 [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)를 사용했습니다.
-Keyword (BM25) 구성도 마찬가지로 한국어 지원이 필요했기 때문에 [Hindsight 공식 다국어 텍스트 검색 백엔드 추천](https://hindsight.vectorize.io/developer/multilingual#4-bm25--full-text-search-backend)을 따라서 [vchord](https://github.com/supervc-stack/VectorChord-bm25)를 사용했습니다. 내부적으로 [llmlingua2](https://llmlingua.com/) 토크나이저를 사용합니다.
+Semantic 구성은 한국어 지원이 필요했기 때문에 Hindsight 공식 다국어 임베딩 추천 모델인 [BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)를 사용했습니다.
+Keyword (BM25) 구성도 마찬가지로 한국어 지원이 필요했기 때문에 추천 백엔드인 [vchord](https://github.com/supervc-stack/VectorChord-bm25)를 사용했습니다. 내부적으로 [llmlingua2](https://llmlingua.com/) 토크나이저를 사용합니다.
 
 
 ### [Pi](https://pi.dev/)
