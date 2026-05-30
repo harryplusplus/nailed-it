@@ -141,12 +141,21 @@ history --> maintainer
 maintainer --> skill
 ```
 
-### [LiteLLM](https://docs.litellm.ai/)
+### [LiteLLM](https://docs.litellm.ai/) 및 [Arize Phoenix](https://arize.com/docs/phoenix)
 
 LiteLLM은 LLM 프록시 서버입니다.
-사용한 이유는 
+그리고 Arize Phoenix는 LLM Tracing, Eval 도구입니다.
 
-### [Arize Phoenix](https://arize.com/docs/phoenix)
+LiteLLM을 사용한 이유는 Hindsight가 직접적으로 Tracing 도구 연동을 지원하지 않았기 때문입니다. Hindsight는 내부적으로 LLM API를 호출합니다.
+그리고 내부의 LLM API 호출은 Hindsight 기능의 품질에 크게 영향을 끼칩니다.
+거의 날 것의 대화 내용에서 사실 및 사실 관계를 LLM이 추출해줘야 하기 때문입니다.
+
+Hindsight에서 LiteLLM 프록시로 LLM API를 호출하면 Arize Phoenix로 Tracing하면서 LLM 제공자인 CrofAI API로 릴레이합니다.
+
+Arize Phoenix를 사용한 이유는 Hindsight의 Tracing을 위해서입니다.
+그리고 Hindsight의 품질이 비정상이라고 판단될 경우에 Eval 기능도 수행할 수 있기 때문입니다.
+처음에는 Langfuse를 도입했지만 로컬에서 서버 인스턴스를 4~5개 띄우고 제 가용 리소스를 너무 많이 사용했습니다.
+그래서 단일 서버 + SQLite가 가능한 Arize Phoenix를 사용했습니다.
 
 ### [Pi](https://pi.dev/)
 
