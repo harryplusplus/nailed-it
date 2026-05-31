@@ -105,9 +105,9 @@ AI 에이전트 세션에서 해당 주제를 언급할 때마다 설명하는 �
 왜냐하면 언급한 그리고 언급하지 않은 여러 구성 옵션이 많았고 적용 및 미적용 비교를 입증하기 이전에 이 시스템이 유효함을 스스로에게 먼저 납득시켜야 했기 때문입니다.
 장기기억 및 기호 특성상 제 스스로에게 납득할만한 충분한 기간이 필요했었습니다.
 
-#### 왜 Hindsight를 정량적으로 측정하지 않았나요?
+#### Hindsight의 성능을 정량적으로 측정할 수 있나요?
 
-굳이 Hindsight를 정량적으로 측정하지 않은 이유는 [Agent Memory Benchmark](https://agentmemorybenchmark.ai/)에서 Hindsight의 벤치마크를 볼 수 있기 때문입니다.
+[Agent Memory Benchmark](https://agentmemorybenchmark.ai/)에서 Hindsight의 벤치마크를 볼 수 있습니다.
 멀티 세션 장기기억에서 높은 점수를 받았음을 확인할 수 있습니다.
 
 #### 그래서 Hindsight에 대한 결론은 무엇인가요?
